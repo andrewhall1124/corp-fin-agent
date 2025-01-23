@@ -47,6 +47,13 @@ Windows
 
 That's it! You are all ready to go with the project!
 
+## Running Streamlit
+To run the streamlit app locally run:
+
+```bash
+uv run streamlit main
+```
+
 ## Useful Commands
 
 ### Add a Dependency
