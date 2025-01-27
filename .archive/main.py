@@ -72,7 +72,4 @@ if __name__ == "__main__":
         net_sales=5500.0,
     )
 
-    sheet = SpreadSheet(
-        data=data,
-        assumptions=assumptions
-    )
+    sheet = SpreadSheet(data=data, assumptions=assumptions)
