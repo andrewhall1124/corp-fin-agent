@@ -9,20 +9,27 @@ class FormulaCell:
         self._formula = formula
         self._value = None
 
-    def get_value(self) -> float:
+    @property
+    def value(self) -> float:
+        """Gets the value."""
         return self._value
 
-    def set_value(self, value: float) -> None:
+    @value.setter
+    def value(self, value: float) -> None:
+        """Sets the value."""
         self._value = value
 
-    def set_formula(self, formula: str) -> None:
-        self._formula = formula
-
-    def get_formula(self) -> str:
+    @property
+    def formula(self) -> float:
+        """Gets the value."""
         return self._formula
 
+    @formula.setter
+    def formula(self, formula: float) -> None:
+        """Sets the value."""
+        self._formula = formula
+
     def get_dependencies(self) -> set[str]:
-        # Return cell references in the formula
         tokens = self._formula.split()
         deps = set()
         for token in tokens:
@@ -32,35 +39,39 @@ class FormulaCell:
 
 
 class ValueCell:
-
     def __init__(self, value: Optional[float] = 0.0):
         self._value = value
 
-    def set_value(self, value: float) -> None:
-        self._value = value
-
-    def get_value(self) -> float:
+    @property
+    def value(self) -> float:
+        """Gets the value."""
         return self._value
 
+    @value.setter
+    def value(self, value: float) -> None:
+        """Sets the value."""
+        self._value = value
 
 class SpreadSheet:
 
     def __init__(self, num_rows: int, num_cols: int) -> None:
-        self._cells = {
-            char: [ValueCell() for _ in range(num_rows)]
-            for char in string.ascii_uppercase[0:num_cols]
-        }
+        self._row_keys = list(range(0, num_rows))
+        self._col_keys = string.ascii_uppercase[0:num_cols]
+
+        self._cells = [
+            {char: ValueCell() for char in self._col_keys}
+            for _ in self._row_keys
+        ]
 
     def get_cell(self, loc: str) -> ValueCell | FormulaCell:
         col, row = loc[0], loc[1:]
         row = int(row) - 1
-        return self._cells[col][row]
+        return self._cells[row][col]
 
     def set_cell(self, loc: str, cell: ValueCell | FormulaCell) -> None:
         col, row = loc[0], loc[1:]
         row = int(row) - 1
-
-        self._cells[col][row] = cell
+        self._cells[row][col] = cell
 
     def _evaluate(self) -> None:
         # Get dependency graph
@@ -152,26 +163,26 @@ class SpreadSheet:
         self.set_cell(loc, cell)
 
     def to_string(self):
-        self._evaluate()
+        # self._evaluate()
         result = "   "
 
         # Add column headers
-        for col in sorted(self._cells.keys()):
+        for col in self._col_keys:
 
             result += f"{col:^5}"  # Center-align column headers with 5 spaces
 
         result += "\n"
 
         # Add rows with row numbers and cell values
-        for row_idx in range(len(next(iter(self._cells.values())))):
+        for row in self._row_keys:
 
-            result += f"{row_idx + 1:2d} "  # Add row number with 2 digits of space
+            result += f"{row:2d} "  # Add row number with 2 digits of space
 
             # Add cell values for each column
-            for col in sorted(self._cells.keys()):
+            for col in self._col_keys:
 
-                cell = self._cells[col][row_idx]
-                value = cell.get_value()
+                cell = self.get_cell(f"{col}{row}")
+                value = cell.value
 
                 if value is None:
                     value = ""
@@ -188,17 +199,17 @@ if __name__ == "__main__":
     print(sheet.to_string())
 
     # Set cell A1 to 5.0
-    sheet.set_cell(loc="A1", cell=ValueCell(5.0))
+    sheet.set_cell(loc="A0", cell=ValueCell(5.0))
     print(sheet.to_string())
 
-    # Set cell A2 to A1 + 1
-    sheet.set_cell(loc="A2", cell=FormulaCell("A1 + 1"))
-    print(sheet.to_string())
+    # # Set cell A2 to A1 + 1
+    # sheet.set_cell(loc="A2", cell=FormulaCell("A1 + 1"))
+    # print(sheet.to_string())
 
-    # Set cell B2 to A2 * 2
-    sheet.set_cell(loc="B2", cell=FormulaCell("A2 * 2"))
-    print(sheet.to_string())
+    # # Set cell B2 to A2 * 2
+    # sheet.set_cell(loc="B2", cell=FormulaCell("A2 * 2"))
+    # print(sheet.to_string())
 
-    # Change cell A1 to 6
-    sheet.set_cell(loc="A1", cell=ValueCell(6.0))
-    print(sheet.to_string())
+    # # Change cell A1 to 6
+    # sheet.set_cell(loc="A1", cell=ValueCell(6.0))
+    # print(sheet.to_string())
