@@ -53,6 +53,20 @@ class ValueCell:
         """Sets the value."""
         self._value = value
 
+class TitleCell:
+    def __init__(self, value: Optional[str] = ""):
+        self._value = value
+
+    @property
+    def value(self) -> str:
+        """Gets the value."""
+        return self._value
+
+    @value.setter
+    def value(self, value: str) -> None:
+        """Sets the value."""
+        self._value = value    
+
 class SpreadSheet:
 
     def __init__(self, num_rows: int, num_cols: int) -> None:
@@ -74,7 +88,7 @@ class SpreadSheet:
         col, row = loc[0], int(loc[1:])
         self._cells[row][col] = cell
 
-    def to_string(self) -> str:
+    def to_string(self, width: int = 5) -> str:
         """Evaluates all formula cells and returns a string representation of the spreadsheet."""
         self._evaluate()
         result = "   "
@@ -82,7 +96,7 @@ class SpreadSheet:
         # Add column headers
         for col in self._col_keys:
 
-            result += f"{col:^5}"  # Center-align column headers with 5 spaces
+            result += f"{col:^{width}}"  # Center-align column headers with 5 spaces
 
         result += "\n"
 
@@ -99,7 +113,8 @@ class SpreadSheet:
 
                 if value is None:
                     value = ""
-                result += f"{value:^5.1f}"  # Center-align cell values with 5 spaces
+
+                result += f"{value:^{width}.1f}" if isinstance(value, float) else f"{value:^{width}}"
 
             result += "\n"
 
