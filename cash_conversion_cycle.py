@@ -14,48 +14,34 @@ class IncomeStatement:
 
 class CashConversionCycle:
 
-    def __init__(self, income_statement: dict[str, list[float]], assumption: float) -> None:
-        self._assumption = assumption
-        self._spreadsheet = SpreadSheet(11, 4)
+    def __init__(self, income_statement: dict[str, list[float]]) -> None:
+        self._spreadsheet = SpreadSheet(0, 4)
 
-        # Column Headers
-        self._spreadsheet.set_cell("A0", ValueCell("Year"))
-        self._spreadsheet.set_cell("B0", ValueCell("1993"))
-        self._spreadsheet.set_cell("C0", ValueCell("1994"))
-        self._spreadsheet.set_cell("D0", ValueCell("1995"))
+        # Year headers
+        row = ["Year"] + [str(year) for year in range(1993, 1996)]
+        self._spreadsheet.append_row(row)
 
         # Column Sub Headers
-        self._spreadsheet.set_cell("A1", ValueCell("Type"))
-        for x in "BCD":
-            self._spreadsheet.set_cell(f"{x}1", ValueCell("Acutal"))
+        row = ["Type"] + ["Actual" for _ in range(3)]
+        self._spreadsheet.append_row(row)
 
         # Net Sales, Cogs, Discount, Operating Expense, Interest Expense
-        for i, key in zip(range(2, 7), list(income_statement.keys())[0:6]):
-
-            self._spreadsheet.set_cell(f"A{i}", ValueCell(key.replace("_", " ").title()))
-
-            for x, value in zip("BCD", income_statement[key]):
-
-                self._spreadsheet.set_cell(f"{x}{i}", ValueCell(value))
+        for item in ['net_sales', 'cogs', 'discount', 'operating_expense', 'interest_expense']:
+            row_name = item.replace("_", " ").title()
+            row = [row_name] + income_statement[item]
+            self._spreadsheet.append_row(row)
         
         # Pretax profits
-        self._spreadsheet.set_cell("A7", ValueCell("Pretax Profits"))
-        for x in "BCD":
-            self._spreadsheet.set_cell(f"{x}7", FormulaCell(f"{x}2 - {x}3 + {x}4 - {x}5 - {x}6"))
+        row = ['Pretax Profits'] + [f"{x}2 - {x}3 + {x}4 - {x}5 - {x}6" for x in "BCD"]
+        self._spreadsheet.append_row(row, formula=True, skip_first=True)
 
         # Taxes
-        self._spreadsheet.set_cell("A8", ValueCell("Taxes"))
-        for x, value in zip("BCD", income_statement['taxes']):
-            self._spreadsheet.set_cell(f"{x}8", ValueCell(value))
+        row = ['Taxes'] + income_statement['taxes']
+        self._spreadsheet.append_row(row)
 
         # Net income
-        self._spreadsheet.set_cell("A9", ValueCell("Net Income"))
-        for x in "BCD":
-            self._spreadsheet.set_cell(f"{x}9", FormulaCell(f"{x}7 - {x}8"))
-
-        self._spreadsheet.set_cell("A10", ValueCell("Testing"))
-        for x in "BCD":
-            self._spreadsheet.set_cell(f"{x}10", FormulaCell(f"{x}9 * {self._assumption}"))
+        row = ['Net Income'] + [f"{x}7 - {x}8" for x in "BCD"]
+        self._spreadsheet.append_row(row, formula=True, skip_first=True)
 
     def to_string(self, width: int = 5) -> str:
         return self._spreadsheet.to_string(width)
@@ -66,18 +52,24 @@ class CashConversionCycle:
 
 if __name__ == "__main__":
 
-    data = pd.read_csv("raw.csv")
+    def process_data(df: pd.DataFrame) -> pd.DataFrame:
+        # Rename columns
+        df['value'] = df['value'].str.lower()
+        df['value'] = df['value'].str.replace(" ", "_")
+        df['value'] = df['value'].str.replace("(", "")
+        df['value'] = df['value'].str.replace(")", "")
+        df['value'] = df['value'].str.replace("&", "")
+        df['value'] = df['value'].str.replace(",", "")
+        df['value'] = df['value'].str.replace("/", "")
 
-    # Rename columns
-    data['value'] = data['value'].str.lower()
-    data['value'] = data['value'].str.replace(" ", "_")
-    data['value'] = data['value'].str.replace("(", "")
-    data['value'] = data['value'].str.replace(")", "")
-    data['value'] = data['value'].str.replace("&", "")
-    data['value'] = data['value'].str.replace(",", "")
-    data['value'] = data['value'].str.replace("/", "")
+        # Transpose
+        df = df.set_index('value').T
 
-    data = data.set_index('value').T
+        return df
+    
+    data = pd.read_csv("clarkson.csv")
+
+    data = process_data(data)
 
     income_statement = {
         'net_sales': data['net_sales'].to_list(),
@@ -92,5 +84,4 @@ if __name__ == "__main__":
         income_statement=income_statement
     )
 
-    # print(ccc.to_string(width=20))
     print(ccc.to_df())

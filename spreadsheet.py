@@ -40,7 +40,7 @@ class FormulaCell:
 
 
 class ValueCell:
-    def __init__(self, value: Optional[float] = 0.0):
+    def __init__(self, value: Optional[float] = None):
         self._value = value
 
     @property
@@ -53,25 +53,11 @@ class ValueCell:
         """Sets the value."""
         self._value = value
 
-class TitleCell:
-    def __init__(self, value: Optional[str] = ""):
-        self._value = value
-
-    @property
-    def value(self) -> str:
-        """Gets the value."""
-        return self._value
-
-    @value.setter
-    def value(self, value: str) -> None:
-        """Sets the value."""
-        self._value = value    
-
 class SpreadSheet:
 
-    def __init__(self, num_rows: int, num_cols: int) -> None:
+    def __init__(self, num_rows: int = 0, num_cols: int = 0) -> None:
         self._row_keys = list(range(0, num_rows))
-        self._col_keys = string.ascii_uppercase[0:num_cols]
+        self._col_keys = list(string.ascii_uppercase[0:num_cols])
 
         self._cells = [
             {char: ValueCell() for char in self._col_keys}
@@ -88,37 +74,39 @@ class SpreadSheet:
         col, row = loc[0], int(loc[1:])
         self._cells[row][col] = cell
 
-    def to_string(self, width: int = 5) -> str:
-        """Evaluates all formula cells and returns a string representation of the spreadsheet."""
-        self._evaluate()
-        result = "   "
+    def add_column(self, num: int = 1):
+        for _ in range(num):
+            last_col = self._col_keys[-1]
+            new_col = chr(ord(last_col) + 1)
+            
+            for row in self._cells:
+                row[new_col] = ValueCell()  
+            
+            self._col_keys.append(new_col)
 
-        # Add column headers
-        for col in self._col_keys:
+    def add_row(self, num: int = 1):
+        for _ in range(num):
+            self._cells.append(
+                {char: ValueCell() for char in self._col_keys}
+            )
+            self._row_keys.append(len(self._row_keys))
+    
+    def append_row(self, values: list[float], formula: bool = False, skip_first = False) -> None:
+        Cell = FormulaCell if formula else ValueCell
 
-            result += f"{col:^{width}}"  # Center-align column headers with 5 spaces
+        num_empty_values = len(self._col_keys) - len(values)
+        values = values + [None for _ in range(num_empty_values)]
+ 
+        self._cells.append(
+            {char: Cell(value) for char, value in zip(self._col_keys, values)}
+        )
 
-        result += "\n"
+        new_row = len(self._row_keys)
 
-        # Add rows with row numbers and cell values
-        for row in self._row_keys:
+        if skip_first:
+            self._cells[new_row]['A'] = ValueCell(values[0]) # Fix later
 
-            result += f"{row:2d} "  # Add row number with 2 digits of space
-
-            # Add cell values for each column
-            for col in self._col_keys:
-
-                cell = self.get_cell(f"{col}{row}")
-                value = cell.value
-
-                if value is None:
-                    value = ""
-
-                result += f"{value:^{width}.1f}" if isinstance(value, float) else f"{value:^{width}}"
-
-            result += "\n"
-
-        return result
+        self._row_keys.append(new_row)
 
     def _evaluate(self) -> None:
         """Evaluates each formula cell in topological order."""
@@ -208,6 +196,38 @@ class SpreadSheet:
         # Set cell value
         self.set_cell(cell_loc, cell)
 
+    def to_string(self, width: int = 5) -> str:
+        """Evaluates all formula cells and returns a string representation of the spreadsheet."""
+        self._evaluate()
+        result = "   "
+
+        # Add column headers
+        for col in self._col_keys:
+
+            result += f"{col:^{width}}"  # Center-align column headers with 5 spaces
+
+        result += "\n"
+
+        # Add rows with row numbers and cell values
+        for row in self._row_keys:
+
+            result += f"{row:2d} "  # Add row number with 2 digits of space
+
+            # Add cell values for each column
+            for col in self._col_keys:
+
+                cell = self.get_cell(f"{col}{row}")
+                value = cell.value
+
+                if value is None:
+                    value = ""
+
+                result += f"{value:^{width}.1f}" if isinstance(value, float) else f"{value:^{width}}"
+
+            result += "\n"
+
+        return result
+
     def to_df(self):
         self._evaluate()
         data = []
@@ -218,22 +238,33 @@ class SpreadSheet:
         return pd.DataFrame(data)
 
 if __name__ == "__main__":
-    # Create Spreadsheet instance
-    sheet = SpreadSheet(2, 2)
+    sheet = SpreadSheet()
+
     print(sheet.to_string())
 
-    # Set cell A1 to 5.0
-    sheet.set_cell(loc="A0", cell=ValueCell(5.0))
+    sheet.add_column()
+
     print(sheet.to_string())
 
-    # Set cell A2 to A1 + 1
-    sheet.set_cell(loc="A1", cell=FormulaCell("A0 + 1"))
-    print(sheet.to_string())
+    sheet.add_row()
 
-    # Set cell B2 to A2 * 2
-    sheet.set_cell(loc="B1", cell=FormulaCell("A1 * 2"))
     print(sheet.to_string())
+    # # Create Spreadsheet instance
+    # sheet = SpreadSheet(2, 2)
+    # print(sheet.to_string())
 
-    # Change cell A1 to 6
-    sheet.set_cell(loc="A0", cell=ValueCell(6.0))
-    print(sheet.to_string())
+    # # Set cell A1 to 5.0
+    # sheet.set_cell(loc="A0", cell=ValueCell(5.0))
+    # print(sheet.to_string())
+
+    # # Set cell A2 to A1 + 1
+    # sheet.set_cell(loc="A1", cell=FormulaCell("A0 + 1"))
+    # print(sheet.to_string())
+
+    # # Set cell B2 to A2 * 2
+    # sheet.set_cell(loc="B1", cell=FormulaCell("A1 * 2"))
+    # print(sheet.to_string())
+
+    # # Change cell A1 to 6
+    # sheet.set_cell(loc="A0", cell=ValueCell(6.0))
+    # print(sheet.to_string())
