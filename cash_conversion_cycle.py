@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from spreadsheet import SpreadSheet, ValueCell, FormulaCell
 import pandas as pd
-import polars as pl
 
 @dataclass
 class IncomeStatement:
@@ -15,8 +14,9 @@ class IncomeStatement:
 
 class CashConversionCycle:
 
-    def __init__(self, income_statement: dict[str, list[float]]) -> None:
-        self._spreadsheet = SpreadSheet(10, 4)
+    def __init__(self, income_statement: dict[str, list[float]], assumption: float) -> None:
+        self._assumption = assumption
+        self._spreadsheet = SpreadSheet(11, 4)
 
         # Column Headers
         self._spreadsheet.set_cell("A0", ValueCell("Year"))
@@ -48,13 +48,20 @@ class CashConversionCycle:
         for x, value in zip("BCD", income_statement['taxes']):
             self._spreadsheet.set_cell(f"{x}8", ValueCell(value))
 
-        # Pretax profits
+        # Net income
         self._spreadsheet.set_cell("A9", ValueCell("Net Income"))
         for x in "BCD":
             self._spreadsheet.set_cell(f"{x}9", FormulaCell(f"{x}7 - {x}8"))
 
+        self._spreadsheet.set_cell("A10", ValueCell("Testing"))
+        for x in "BCD":
+            self._spreadsheet.set_cell(f"{x}10", FormulaCell(f"{x}9 * {self._assumption}"))
+
     def to_string(self, width: int = 5) -> str:
         return self._spreadsheet.to_string(width)
+
+    def to_df(self):
+        return self._spreadsheet.to_df()
     
 
 if __name__ == "__main__":
@@ -85,4 +92,5 @@ if __name__ == "__main__":
         income_statement=income_statement
     )
 
-    print(ccc.to_string(width=20))
+    # print(ccc.to_string(width=20))
+    print(ccc.to_df())

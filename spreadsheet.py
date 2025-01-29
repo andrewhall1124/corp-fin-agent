@@ -1,7 +1,7 @@
 import string
 from typing import Optional
 from collections import defaultdict
-
+import pandas as pd
 
 class FormulaCell:
 
@@ -208,6 +208,14 @@ class SpreadSheet:
         # Set cell value
         self.set_cell(cell_loc, cell)
 
+    def to_df(self):
+        self._evaluate()
+        data = []
+        for row in self._cells:
+            new_row = {key: cell.value for key, cell in row.items()}
+            data.append(new_row)
+
+        return pd.DataFrame(data)
 
 if __name__ == "__main__":
     # Create Spreadsheet instance
