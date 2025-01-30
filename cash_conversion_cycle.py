@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from spreadsheet import FormulaCell, SpreadSheet, ValueCell, Style
+from spreadsheet import FormulaCell, SpreadSheet, Style, ValueCell
 
 
 @dataclass
@@ -45,7 +45,8 @@ class CashConversionCycle:
     def _key_assumptions(self, sales_growth: float, interest_rate: float):
         # Sales Growth
         historical = [None] + [
-            FormulaCell(f"( {y}6 - {x}6 ) / {x}6", Style.Percent) for x, y in zip("BC", "CD")
+            FormulaCell(f"( {y}6 - {x}6 ) / {x}6", Style.Percent)
+            for x, y in zip("BC", "CD")
         ]
         forecast = [ValueCell(sales_growth, Style.Percent) for _ in range(4)]
         row = ["Sales Growth"] + historical + forecast
@@ -82,7 +83,9 @@ class CashConversionCycle:
         # Cogs
         historical = income_statement["cogs"]
         forecast = [FormulaCell(f"{x}6 * I7") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B7 / B6 , C7 / C6 , D7 / D6 ]) / 3", Style.Percent)]
+        percent_of_sales = [
+            FormulaCell("sum([ B7 / B6 , C7 / C6 , D7 / D6 ]) / 3", Style.Percent)
+        ]
         row = ["COGS"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
@@ -93,7 +96,9 @@ class CashConversionCycle:
         # Operating Expense
         historical = income_statement["operating_expense"]
         forecast = [FormulaCell(f"{x}6 * I9") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B9 / B6 , C9 / C6 , D9 / D6 ]) / 3", Style.Percent)]
+        percent_of_sales = [
+            FormulaCell("sum([ B9 / B6 , C9 / C6 , D9 / D6 ]) / 3", Style.Percent)
+        ]
         row = ["Operating Expense"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
@@ -123,28 +128,36 @@ class CashConversionCycle:
         # Cash
         historical = balance_sheet["cash"]
         forecast = [FormulaCell(f"{x}6 * I14") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B14 / B6 , C14 / C6 , D14 / D6 ]) / 3", Style.Percent)]
+        percent_of_sales = [
+            FormulaCell("sum([ B14 / B6 , C14 / C6 , D14 / D6 ]) / 3", Style.Percent)
+        ]
         row = ["Cash"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # A/R
         historical = balance_sheet["ar"]
         forecast = [FormulaCell(f"{x}6 * I15") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B15 / B6 , C15 / C6 , D15 / D6 ]) / 3", Style.Percent)]
+        percent_of_sales = [
+            FormulaCell("sum([ B15 / B6 , C15 / C6 , D15 / D6 ]) / 3", Style.Percent)
+        ]
         row = ["A/R"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # Inventory
         historical = balance_sheet["inventory"]
         forecast = [FormulaCell(f"{x}6 * I16") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B16 / B6 , C16 / C6 , D16 / D6 ]) / 3", Style.Percent)]
+        percent_of_sales = [
+            FormulaCell("sum([ B16 / B6 , C16 / C6 , D16 / D6 ]) / 3", Style.Percent)
+        ]
         row = ["Inventory"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # PP&E
         historical = balance_sheet["ppe"]
         forecast = [FormulaCell(f"{x}6 * I17") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B17 / B6 , C17 / C6 , D17 / D6 ]) / 3", Style.Percent)]
+        percent_of_sales = [
+            FormulaCell("sum([ B17 / B6 , C17 / C6 , D17 / D6 ]) / 3", Style.Percent)
+        ]
         row = ["PP&E"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
@@ -187,7 +200,9 @@ class CashConversionCycle:
         # Accrued Expenses
         historical = balance_sheet["accrued_expenses"]
         forecast = [FormulaCell(f"{x}6 * I23") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B23 / B6 , C23 / C6 , D23 / D6 ]) / 3", Style.Percent)]
+        percent_of_sales = [
+            FormulaCell("sum([ B23 / B6 , C23 / C6 , D23 / D6 ]) / 3", Style.Percent)
+        ]
         row = ["Accrued Expenses"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
@@ -222,58 +237,3 @@ class CashConversionCycle:
 
     def to_df(self):
         return self._spreadsheet.to_df()
-
-
-if __name__ == "__main__":
-
-    def process_data(df: pd.DataFrame) -> pd.DataFrame:
-        # Rename columns
-        df["value"] = df["value"].str.lower()
-        df["value"] = df["value"].str.replace(" ", "_")
-        df["value"] = df["value"].str.replace("(", "")
-        df["value"] = df["value"].str.replace(")", "")
-        df["value"] = df["value"].str.replace("&", "")
-        df["value"] = df["value"].str.replace(",", "")
-        df["value"] = df["value"].str.replace("/", "")
-
-        # Transpose
-        df = df.set_index("value").T
-
-        return df
-
-    data = pd.read_csv("clarkson.csv")
-
-    data = process_data(data)
-
-    income_statement = {
-        "net_sales": data["net_sales"].to_list(),
-        "cogs": data["cogs"].to_list(),
-        "discount": data["discount"].to_list(),
-        "operating_expense": data["operating_expense"].to_list(),
-        "interest_expense": data["interest_expense"].to_list(),
-        "taxes": data["taxes"].to_list(),
-    }
-
-    balance_sheet = {
-        "cash": data["cash"].to_list(),
-        "ar": data["ar"].to_list(),
-        "inventory": data["inventory"].to_list(),
-        "ppe": data["ppe"].to_list(),
-        "notes_payable_bank_plug": data["notes_payable_bank_plug"].to_list(),
-        "note_payable_to_holtz": data["note_payable_to_holtz"].to_list(),
-        "notes_payable_trade": data["notes_payable_trade"].to_list(),
-        "ap": data["ap"].to_list(),
-        "accrued_expenses": data["accrued_expenses"].to_list(),
-        "term_loan_current_portion": data["term_loan_current_portion"].to_list(),
-        "term_loan": data["term_loan"].to_list(),
-        "net_worth": data["net_worth"].to_list(),
-    }
-
-    ccc = CashConversionCycle(
-        income_statement=income_statement,
-        balance_sheet=balance_sheet,
-        sales_growth=0.25,
-        interest_rate=0.11,
-    )
-
-    print(ccc.to_df())

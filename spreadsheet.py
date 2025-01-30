@@ -1,24 +1,26 @@
 import string
 from collections import defaultdict
+from enum import Enum
 from typing import Optional
 
 import pandas as pd
-from enum import Enum
+
 
 class Style(Enum):
     Percent = 1
     Integer = 2
     String = 3
 
+
 def format_cell(value: str | int | float, style: Style) -> str:
     match style:
 
         case Style.Integer:
             return f"{round(value)}"
-        
+
         case Style.Percent:
             return f"{round(value * 100, 2)} %"
-        
+
         case Style.String:
             if value is None:
                 return ""
@@ -26,6 +28,7 @@ def format_cell(value: str | int | float, style: Style) -> str:
                 return f"{round(value)}"
             else:
                 return str(value)
+
 
 class FormulaCell:
 
