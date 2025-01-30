@@ -80,88 +80,132 @@ class CashConversionCycle:
         self._spreadsheet.append_row(row)
 
         # Cogs
-        row = ["COGS"] + income_statement["cogs"]
+        historical = income_statement["cogs"]
+        forecast = [FormulaCell(f"{x}6 * I7") for x in "EFGH"]
+        percent_of_sales = [FormulaCell("sum([ B7 / B6 , C7 / C6 , D7 / D6 ]) / 3")]
+        row = ["COGS"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
-        # Discount
-        row = ["Discount"] + income_statement["discount"]
+        # Discount (fix later)
+        row = ["Discount"] + income_statement["discount"] + [0 for _ in range(4)]
         self._spreadsheet.append_row(row)
 
         # Operating Expense
-        row = ["Operating Expense"] + income_statement["operating_expense"]
+        historical = income_statement["operating_expense"]
+        forecast = [FormulaCell(f"{x}6 * I9") for x in "EFGH"]
+        percent_of_sales = [FormulaCell("sum([ B9 / B6 , C9 / C6 , D9 / D6 ]) / 3")]
+        row = ["Operating Expense"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # Interest Expense
-        row = ["Interest Expense"] + income_statement["interest_expense"]
+        historical = income_statement["interest_expense"]
+        forecast = [FormulaCell(f"{x}3 * {y}19") for x, y in zip("EFGH", "DEFG")]
+        row = ["Interest Expense"] + historical + [0 for _ in range(4)] + forecast
         self._spreadsheet.append_row(row)
 
         # Pretax profits
         row = ["Pretax Profits"] + [
-            FormulaCell(f"{x}6 - {x}7 + {x}8 - {x}9 - {x}10") for x in "BCD"
+            FormulaCell(f"{x}6 - {x}7 + {x}8 - {x}9 - {x}10") for x in "BCDEFGH"
         ]
         self._spreadsheet.append_row(row)
 
         # Taxes
-        row = ["Taxes"] + income_statement["taxes"]
+        historical = income_statement["taxes"]
+        forecast = [FormulaCell(f"{x}4 * {x}11") for x in "EFGH"]
+        row = ["Taxes"] + historical + forecast
         self._spreadsheet.append_row(row)
 
         # Net income
-        row = ["Net Income"] + [FormulaCell(f"{x}11 - {x}12") for x in "BCD"]
+        row = ["Net Income"] + [FormulaCell(f"{x}11 - {x}12") for x in "BCDEFGH"]
         self._spreadsheet.append_row(row)
 
     def _balance_sheet(self, balance_sheet: dict[str, list[float]]):
         # Cash
-        row = ["Cash"] + balance_sheet["cash"]
+        historical = balance_sheet["cash"]
+        forecast = [FormulaCell(f"{x}6 * I14") for x in "EFGH"]
+        percent_of_sales = [FormulaCell("sum([ B14 / B6 , C14 / C6 , D14 / D6 ]) / 3")]
+        row = ["Cash"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # A/R
-        row = ["A/R"] + balance_sheet["ar"]
+        historical = balance_sheet["ar"]
+        forecast = [FormulaCell(f"{x}6 * I15") for x in "EFGH"]
+        percent_of_sales = [FormulaCell("sum([ B15 / B6 , C15 / C6 , D15 / D6 ]) / 3")]
+        row = ["A/R"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # Inventory
-        row = ["Inventory"] + balance_sheet["inventory"]
+        historical = balance_sheet["inventory"]
+        forecast = [FormulaCell(f"{x}6 * I16") for x in "EFGH"]
+        percent_of_sales = [FormulaCell("sum([ B16 / B6 , C16 / C6 , D16 / D6 ]) / 3")]
+        row = ["Inventory"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # PP&E
-        row = ["PP&E"] + balance_sheet["ppe"]
+        historical = balance_sheet["ppe"]
+        forecast = [FormulaCell(f"{x}6 * I17") for x in "EFGH"]
+        percent_of_sales = [FormulaCell("sum([ B17 / B6 , C17 / C6 , D17 / D6 ]) / 3")]
+        row = ["PP&E"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # Total Assets
         row = ["Total Assets"] + [
-            FormulaCell(f"sum([ {x}14 , {x}15 , {x}16 , {x}17 ])") for x in "BCD"
+            FormulaCell(f"sum([ {x}14 , {x}15 , {x}16 , {x}17 ])") for x in "BCDEFGH"
         ]
         self._spreadsheet.append_row(row)
 
         # Notes Payable (PLUG)
-        row = ["Notes Payable (PLUG)"] + balance_sheet["notes_payable_bank_plug"]
+        historical = balance_sheet["notes_payable_bank_plug"]
+        forecast = [
+            FormulaCell(f"{x}18 - sum([ {x}22 , {x}23 , {x}24 , {x}25 , {x}26 ])")
+            for x in "EFGH"
+        ]
+        row = ["Notes Payable (PLUG)"] + historical + forecast
         self._spreadsheet.append_row(row)
 
         # Notes Payable Holtz
-        row = ["Notes Payable Holtz"] + balance_sheet["note_payable_to_holtz"]
+        row = (
+            ["Notes Payable Holtz"]
+            + balance_sheet["note_payable_to_holtz"]
+            + [0 for _ in range(4)]
+        )
         self._spreadsheet.append_row(row)
 
         # Notes Payable Trade
-        row = ["Notes Payable Trade"] + balance_sheet["notes_payable_trade"]
+        row = (
+            ["Notes Payable Trade"]
+            + balance_sheet["notes_payable_trade"]
+            + [0 for _ in range(4)]
+        )
         self._spreadsheet.append_row(row)
 
         # A/P
-        row = ["A/P"] + balance_sheet["ap"]
+        forecast = [FormulaCell(f"{x}5 * {x}7 / 365") for x in "EFGH"]
+        row = ["A/P"] + balance_sheet["ap"] + forecast
         self._spreadsheet.append_row(row)
 
         # Accrued Expenses
-        row = ["Accrued Expenses"] + balance_sheet["accrued_expenses"]
+        historical = balance_sheet["accrued_expenses"]
+        forecast = [FormulaCell(f"{x}6 * I23") for x in "EFGH"]
+        percent_of_sales = [FormulaCell("sum([ B23 / B6 , C23 / C6 , D23 / D6 ]) / 3")]
+        row = ["Accrued Expenses"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # Term Loan Current Portion
-        row = ["Term Loan Current Portion"] + balance_sheet["term_loan_current_portion"]
+        row = (
+            ["Term Loan Current Portion"]
+            + balance_sheet["term_loan_current_portion"]
+            + [20 for _ in range(4)]
+        )
         self._spreadsheet.append_row(row)
 
         # Term Loan
-        row = ["Term Loan"] + balance_sheet["term_loan"]
+        row = ["Term Loan"] + balance_sheet["term_loan"] + [80, 60, 40, 20]
         self._spreadsheet.append_row(row)
 
         # Net Worth
-        row = ["Net Worth"] + balance_sheet["net_worth"]
+        forecast = [FormulaCell(f"{x}26 + {y}13") for x, y in zip("DEFG", "EFGH")]
+        row = ["Net Worth"] + balance_sheet["net_worth"] + forecast
         self._spreadsheet.append_row(row)
 
         # Total Liabilities
@@ -169,7 +213,7 @@ class CashConversionCycle:
             FormulaCell(
                 f"sum([ {x}19 , {x}20 , {x}21 , {x}22 , {x}23 , {x}24 , {x}25 , {x}26 ])"
             )
-            for x in "BCD"
+            for x in "BCDEFGH"
         ]
         self._spreadsheet.append_row(row)
 
