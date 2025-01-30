@@ -1,6 +1,8 @@
 from dataclasses import dataclass
-from spreadsheet import SpreadSheet, ValueCell, FormulaCell
+
 import pandas as pd
+
+from spreadsheet import FormulaCell, SpreadSheet, ValueCell
 
 
 @dataclass
@@ -20,10 +22,11 @@ class CashConversionCycle:
         income_statement: dict[str, list[float]],
         balance_sheet: dict[str, list[float]],
         sales_growth: float,
+        interest_rate: float,
     ) -> None:
         self._spreadsheet = SpreadSheet(0, 9)
         self._header()
-        self._key_assumptions()
+        self._key_assumptions(sales_growth, interest_rate)
         self._cash_conversion_cycle()
         self._income_statement(income_statement)
         self._balance_sheet(balance_sheet)
@@ -39,34 +42,41 @@ class CashConversionCycle:
         row = ["Type"] + ["Actual" for _ in range(3)] + ["Forecast" for _ in range(4)]
         self._spreadsheet.append_row(row)
 
-    def _key_assumptions(self, sales_growth: float):
+    def _key_assumptions(self, sales_growth: float, interest_rate: float):
         # Sales Growth
         historical = [None] + [
-            FormulaCell(f"( {y}6 - {x}6 ) / {x}6") for x, y in ["BC", "CD"]
+            FormulaCell(f"( {y}6 - {x}6 ) / {x}6") for x, y in zip("BC", "CD")
         ]
-        forecast = [ValueCell(sales_growth) for _ in range(4)]
+        forecast = [sales_growth for _ in range(4)]
         row = ["Sales Growth"] + historical + forecast
         self._spreadsheet.append_row(row)
 
         # Interest Rate
-        row = ["Interest Rate"] + [None for _ in range(3)] + [0.11 for _ in range(4)]
+        row = (
+            ["Interest Rate"]
+            + [None for _ in range(3)]
+            + [interest_rate for _ in range(4)]
+        )
         self._spreadsheet.append_row(row)
 
         # Tax Rate
         historical = [FormulaCell(f"{x}12 / {x}11") for x in "BCD"]
-        row = ["Tax Rate"] + historical
+        forecast = [FormulaCell(f"{x}4") for x in "DEFG"]
+        row = ["Tax Rate"] + historical + forecast
         self._spreadsheet.append_row(row)
 
     def _cash_conversion_cycle(self):
         # Payables Period
-        row = ["Payables Period"] + [
-            FormulaCell(f"( {x}21 + {x}22 ) / ( {x}7 / 365 )") for x in "BCD"
-        ]
+        historical = [FormulaCell(f"( {x}21 + {x}22 ) / ( {x}7 / 365 )") for x in "BCD"]
+        forecast = [FormulaCell(f"{x}5") for x in "DEFG"]
+        row = ["Payables Period"] + historical + forecast
         self._spreadsheet.append_row(row)
 
     def _income_statement(self, income_statement: dict[str, list[float]]):
         # Net Sales
-        row = ["Net Sales"] + income_statement["net_sales"]
+        historical = income_statement["net_sales"]
+        forecast = [FormulaCell(f"{x}6 * ( 1 + {y}2 )") for x, y in zip("DEFG", "EFGH")]
+        row = ["Net Sales"] + historical + forecast
         self._spreadsheet.append_row(row)
 
         # Cogs
@@ -118,7 +128,7 @@ class CashConversionCycle:
 
         # Total Assets
         row = ["Total Assets"] + [
-            FormulaCell(f"{x}14 + {x}15 + {x}16 + {x}17") for x in "BCD"
+            FormulaCell(f"sum([ {x}14 , {x}15 , {x}16 , {x}17 ])") for x in "BCD"
         ]
         self._spreadsheet.append_row(row)
 
@@ -157,7 +167,7 @@ class CashConversionCycle:
         # Total Liabilities
         row = ["Total Liabilities"] + [
             FormulaCell(
-                f"{x}19 + {x}20 + {x}21 + {x}22 + {x}23 + {x}24 + {x}25 + {x}26"
+                f"sum([ {x}19 , {x}20 , {x}21 , {x}22 , {x}23 , {x}24 , {x}25 , {x}26 ])"
             )
             for x in "BCD"
         ]
@@ -216,7 +226,10 @@ if __name__ == "__main__":
     }
 
     ccc = CashConversionCycle(
-        income_statement=income_statement, balance_sheet=balance_sheet
+        income_statement=income_statement,
+        balance_sheet=balance_sheet,
+        sales_growth=0.25,
+        interest_rate=0.11,
     )
 
     print(ccc.to_df())

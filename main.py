@@ -1,5 +1,6 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
+
 from cash_conversion_cycle import CashConversionCycle
 
 data = pd.read_csv("raw.csv")
