@@ -3,6 +3,7 @@ from typing import Optional
 from collections import defaultdict
 import pandas as pd
 
+
 class FormulaCell:
 
     def __init__(self, formula: str) -> None:
@@ -53,6 +54,7 @@ class ValueCell:
         """Sets the value."""
         self._value = value
 
+
 class SpreadSheet:
 
     def __init__(self, num_rows: int = 0, num_cols: int = 0) -> None:
@@ -60,8 +62,7 @@ class SpreadSheet:
         self._col_keys = list(string.ascii_uppercase[0:num_cols])
 
         self._cells = [
-            {char: ValueCell() for char in self._col_keys}
-            for _ in self._row_keys
+            {char: ValueCell() for char in self._col_keys} for _ in self._row_keys
         ]
 
     def get_cell(self, cell_loc: str) -> ValueCell | FormulaCell:
@@ -78,19 +79,17 @@ class SpreadSheet:
         for _ in range(num):
             last_col = self._col_keys[-1]
             new_col = chr(ord(last_col) + 1)
-            
+
             for row in self._cells:
-                row[new_col] = ValueCell()  
-            
+                row[new_col] = ValueCell()
+
             self._col_keys.append(new_col)
 
     def add_row(self, num: int = 1):
         for _ in range(num):
-            self._cells.append(
-                {char: ValueCell() for char in self._col_keys}
-            )
+            self._cells.append({char: ValueCell() for char in self._col_keys})
             self._row_keys.append(len(self._row_keys))
-    
+
     def append_row(self, cells: list[float]) -> None:
 
         num_empty_values = len(self._col_keys) - len(cells)
@@ -100,17 +99,15 @@ class SpreadSheet:
                 cells[i] = ValueCell(cell)
 
         cells = cells + [ValueCell() for _ in range(num_empty_values)]
- 
-        self._cells.append(
-            {char: cell for char, cell in zip(self._col_keys, cells)}
-        )
+
+        self._cells.append({char: cell for char, cell in zip(self._col_keys, cells)})
 
         new_row = len(self._row_keys)
         self._row_keys.append(new_row)
 
     def _evaluate(self) -> None:
         """Evaluates each formula cell in topological order."""
-        
+
         # Get dependency graph
         graph = self._get_dependencies()
 
@@ -222,7 +219,11 @@ class SpreadSheet:
                 if value is None:
                     value = ""
 
-                result += f"{value:^{width}.1f}" if isinstance(value, float) else f"{value:^{width}}"
+                result += (
+                    f"{value:^{width}.1f}"
+                    if isinstance(value, float)
+                    else f"{value:^{width}}"
+                )
 
             result += "\n"
 
@@ -236,6 +237,7 @@ class SpreadSheet:
             data.append(new_row)
 
         return pd.DataFrame(data).fillna("")
+
 
 if __name__ == "__main__":
     sheet = SpreadSheet()
