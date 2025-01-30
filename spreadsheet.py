@@ -91,21 +91,21 @@ class SpreadSheet:
             )
             self._row_keys.append(len(self._row_keys))
     
-    def append_row(self, values: list[float], formula: bool = False, skip_first = False) -> None:
-        Cell = FormulaCell if formula else ValueCell
+    def append_row(self, cells: list[float]) -> None:
 
-        num_empty_values = len(self._col_keys) - len(values)
-        values = values + [None for _ in range(num_empty_values)]
+        num_empty_values = len(self._col_keys) - len(cells)
+
+        for i, cell in enumerate(cells):
+            if not isinstance(cell, ValueCell) and not isinstance(cell, FormulaCell):
+                cells[i] = ValueCell(cell)
+
+        cells = cells + [ValueCell() for _ in range(num_empty_values)]
  
         self._cells.append(
-            {char: Cell(value) for char, value in zip(self._col_keys, values)}
+            {char: cell for char, cell in zip(self._col_keys, cells)}
         )
 
         new_row = len(self._row_keys)
-
-        if skip_first:
-            self._cells[new_row]['A'] = ValueCell(values[0]) # Fix later
-
         self._row_keys.append(new_row)
 
     def _evaluate(self) -> None:
@@ -235,7 +235,7 @@ class SpreadSheet:
             new_row = {key: cell.value for key, cell in row.items()}
             data.append(new_row)
 
-        return pd.DataFrame(data)
+        return pd.DataFrame(data).fillna("")
 
 if __name__ == "__main__":
     sheet = SpreadSheet()
