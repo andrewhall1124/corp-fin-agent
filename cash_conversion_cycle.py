@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from spreadsheet import FormulaCell, SpreadSheet, ValueCell
+from spreadsheet import FormulaCell, SpreadSheet, ValueCell, Style
 
 
 @dataclass
@@ -45,9 +45,9 @@ class CashConversionCycle:
     def _key_assumptions(self, sales_growth: float, interest_rate: float):
         # Sales Growth
         historical = [None] + [
-            FormulaCell(f"( {y}6 - {x}6 ) / {x}6") for x, y in zip("BC", "CD")
+            FormulaCell(f"( {y}6 - {x}6 ) / {x}6", Style.Percent) for x, y in zip("BC", "CD")
         ]
-        forecast = [sales_growth for _ in range(4)]
+        forecast = [ValueCell(sales_growth, Style.Percent) for _ in range(4)]
         row = ["Sales Growth"] + historical + forecast
         self._spreadsheet.append_row(row)
 
@@ -55,13 +55,13 @@ class CashConversionCycle:
         row = (
             ["Interest Rate"]
             + [None for _ in range(3)]
-            + [interest_rate for _ in range(4)]
+            + [ValueCell(interest_rate, Style.Percent) for _ in range(4)]
         )
         self._spreadsheet.append_row(row)
 
         # Tax Rate
-        historical = [FormulaCell(f"{x}12 / {x}11") for x in "BCD"]
-        forecast = [FormulaCell(f"{x}4") for x in "DEFG"]
+        historical = [FormulaCell(f"{x}12 / {x}11", Style.Percent) for x in "BCD"]
+        forecast = [FormulaCell(f"{x}4", Style.Percent) for x in "DEFG"]
         row = ["Tax Rate"] + historical + forecast
         self._spreadsheet.append_row(row)
 
@@ -82,7 +82,7 @@ class CashConversionCycle:
         # Cogs
         historical = income_statement["cogs"]
         forecast = [FormulaCell(f"{x}6 * I7") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B7 / B6 , C7 / C6 , D7 / D6 ]) / 3")]
+        percent_of_sales = [FormulaCell("sum([ B7 / B6 , C7 / C6 , D7 / D6 ]) / 3", Style.Percent)]
         row = ["COGS"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
@@ -93,14 +93,14 @@ class CashConversionCycle:
         # Operating Expense
         historical = income_statement["operating_expense"]
         forecast = [FormulaCell(f"{x}6 * I9") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B9 / B6 , C9 / C6 , D9 / D6 ]) / 3")]
+        percent_of_sales = [FormulaCell("sum([ B9 / B6 , C9 / C6 , D9 / D6 ]) / 3", Style.Percent)]
         row = ["Operating Expense"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # Interest Expense
         historical = income_statement["interest_expense"]
         forecast = [FormulaCell(f"{x}3 * {y}19") for x, y in zip("EFGH", "DEFG")]
-        row = ["Interest Expense"] + historical + [0 for _ in range(4)] + forecast
+        row = ["Interest Expense"] + historical + forecast
         self._spreadsheet.append_row(row)
 
         # Pretax profits
@@ -123,28 +123,28 @@ class CashConversionCycle:
         # Cash
         historical = balance_sheet["cash"]
         forecast = [FormulaCell(f"{x}6 * I14") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B14 / B6 , C14 / C6 , D14 / D6 ]) / 3")]
+        percent_of_sales = [FormulaCell("sum([ B14 / B6 , C14 / C6 , D14 / D6 ]) / 3", Style.Percent)]
         row = ["Cash"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # A/R
         historical = balance_sheet["ar"]
         forecast = [FormulaCell(f"{x}6 * I15") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B15 / B6 , C15 / C6 , D15 / D6 ]) / 3")]
+        percent_of_sales = [FormulaCell("sum([ B15 / B6 , C15 / C6 , D15 / D6 ]) / 3", Style.Percent)]
         row = ["A/R"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # Inventory
         historical = balance_sheet["inventory"]
         forecast = [FormulaCell(f"{x}6 * I16") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B16 / B6 , C16 / C6 , D16 / D6 ]) / 3")]
+        percent_of_sales = [FormulaCell("sum([ B16 / B6 , C16 / C6 , D16 / D6 ]) / 3", Style.Percent)]
         row = ["Inventory"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # PP&E
         historical = balance_sheet["ppe"]
         forecast = [FormulaCell(f"{x}6 * I17") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B17 / B6 , C17 / C6 , D17 / D6 ]) / 3")]
+        percent_of_sales = [FormulaCell("sum([ B17 / B6 , C17 / C6 , D17 / D6 ]) / 3", Style.Percent)]
         row = ["PP&E"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
@@ -187,7 +187,7 @@ class CashConversionCycle:
         # Accrued Expenses
         historical = balance_sheet["accrued_expenses"]
         forecast = [FormulaCell(f"{x}6 * I23") for x in "EFGH"]
-        percent_of_sales = [FormulaCell("sum([ B23 / B6 , C23 / C6 , D23 / D6 ]) / 3")]
+        percent_of_sales = [FormulaCell("sum([ B23 / B6 , C23 / C6 , D23 / D6 ]) / 3", Style.Percent)]
         row = ["Accrued Expenses"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 

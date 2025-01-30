@@ -3,13 +3,36 @@ from collections import defaultdict
 from typing import Optional
 
 import pandas as pd
+from enum import Enum
 
+class Style(Enum):
+    Percent = 1
+    Integer = 2
+    String = 3
+
+def format_cell(value: str | int | float, style: Style) -> str:
+    match style:
+
+        case Style.Integer:
+            return f"{round(value)}"
+        
+        case Style.Percent:
+            return f"{round(value * 100, 2)} %"
+        
+        case Style.String:
+            if value is None:
+                return ""
+            elif isinstance(value, float):
+                return f"{round(value)}"
+            else:
+                return str(value)
 
 class FormulaCell:
 
-    def __init__(self, formula: str) -> None:
+    def __init__(self, formula: str, style: Style = Style.String) -> None:
         self._formula = formula
         self._value = 0.0
+        self._style = style
 
     @property
     def value(self) -> float:
@@ -31,6 +54,9 @@ class FormulaCell:
         """Sets the formula."""
         self._formula = formula
 
+    def __str__(self) -> str:
+        return format_cell(self.value, self._style)
+
     def get_dependencies(self) -> set[str]:
         """Get's the dependencies of the formula cell."""
         tokens = self._formula.split()
@@ -42,8 +68,9 @@ class FormulaCell:
 
 
 class ValueCell:
-    def __init__(self, value: Optional[float] = None):
+    def __init__(self, value: Optional[float] = None, style: Style = Style.String):
         self._value = value
+        self._style = style
 
     @property
     def value(self) -> float:
@@ -54,6 +81,9 @@ class ValueCell:
     def value(self, value: float) -> None:
         """Sets the value."""
         self._value = value
+
+    def __str__(self) -> str:
+        return format_cell(self.value, self._style)
 
 
 class SpreadSheet:
@@ -234,7 +264,7 @@ class SpreadSheet:
         self._evaluate()
         data = []
         for row in self._cells:
-            new_row = {key: cell.value for key, cell in row.items()}
+            new_row = {key: str(cell) for key, cell in row.items()}
             data.append(new_row)
 
         return pd.DataFrame(data).fillna("")
