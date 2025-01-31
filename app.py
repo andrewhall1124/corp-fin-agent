@@ -47,7 +47,8 @@ balance_sheet = {
     "term_loan": data["term_loan"].to_list(),
     "net_worth": data["net_worth"].to_list(),
 }
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title="Cashflow Conversion Cycle")
+
 st.title("Cashflow Conversion Cycle")
 
 col1, col2 = st.columns(2)
