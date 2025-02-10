@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from spreadsheet import FormulaCell, SpreadSheet, Style, ValueCell
+from app.spreadsheet import FormulaCell, SpreadSheet, Style, ValueCell
 
 
 @dataclass
