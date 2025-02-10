@@ -276,31 +276,22 @@ class SpreadSheet:
 if __name__ == "__main__":
     sheet = SpreadSheet()
 
+    # Create Spreadsheet instance
+    sheet = SpreadSheet(2, 2)
     print(sheet.to_string())
 
-    sheet.add_column()
-
+    # Set cell A0 to 5.0
+    sheet.set_cell(loc="A0", cell=ValueCell(5.0))
     print(sheet.to_string())
 
-    sheet.add_row()
-
+    # Set cell A1 to A0 + 1
+    sheet.set_cell(loc="A1", cell=FormulaCell("A0 + 1"))
     print(sheet.to_string())
-    # # Create Spreadsheet instance
-    # sheet = SpreadSheet(2, 2)
-    # print(sheet.to_string())
 
-    # # Set cell A1 to 5.0
-    # sheet.set_cell(loc="A0", cell=ValueCell(5.0))
-    # print(sheet.to_string())
+    # Set cell B1 to A1 * 2
+    sheet.set_cell(loc="B1", cell=FormulaCell("A1 * 2"))
+    print(sheet.to_string())
 
-    # # Set cell A2 to A1 + 1
-    # sheet.set_cell(loc="A1", cell=FormulaCell("A0 + 1"))
-    # print(sheet.to_string())
-
-    # # Set cell B2 to A2 * 2
-    # sheet.set_cell(loc="B1", cell=FormulaCell("A1 * 2"))
-    # print(sheet.to_string())
-
-    # # Change cell A1 to 6
-    # sheet.set_cell(loc="A0", cell=ValueCell(6.0))
-    # print(sheet.to_string())
+    # Change cell A0 to 6
+    sheet.set_cell(loc="A0", cell=ValueCell(6.0))
+    print(sheet.to_string())
