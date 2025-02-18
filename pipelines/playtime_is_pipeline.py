@@ -1,17 +1,13 @@
 import pandas as pd
 from database.database import Database
-from pathlib import Path
-
-file_path = Path("data/playtime_is.csv") # Relative path
-file_name = file_path.stem
 
 COMPANY_ID = 2
-TABLE_NAME = file_name
+TABLE_NAME = "playtime_is"
 STG_TABLE = TABLE_NAME + "_stg"
 XF_TABLE = TABLE_NAME + "_xf"
 
 # Import raw
-df = pd.read_csv(file_path)
+df = pd.read_csv("data/playtime_is.csv")
 
 # Rename columns
 df["value"] = df["value"].str.lower()
@@ -40,9 +36,7 @@ with Database() as db:
                 {COMPANY_ID} AS company_id,
                 year,
                 net_sales,
-                NULL AS other_pre_profit_income,
                 cogs AS cost_of_goods_sold,
-                NULL AS other_pre_profit_expenses,
                 operating_expense,
                 interest_expense,
                 taxes
@@ -58,9 +52,7 @@ with Database() as db:
             company_id,
             year,
             net_sales,
-            other_pre_profit_income,
             cost_of_goods_sold,
-            other_pre_profit_expenses,
             operating_expense,
             interest_expense,
             taxes
@@ -69,9 +61,7 @@ with Database() as db:
             company_id,
             year,
             net_sales,
-            other_pre_profit_income,
             cost_of_goods_sold,
-            other_pre_profit_expenses,
             operating_expense,
             interest_expense,
             taxes
