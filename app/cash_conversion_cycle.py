@@ -10,9 +10,17 @@ R = {
     'sales_growth': 3,
     'interest_rate': 4,
     'tax_rate': 5,
+    'payables_period': 8,
+    'recievables_period': 9,
+    'inventory_period': 10,
+    'ccc': 11,
     'net_sales': 14,
+    'cost_of_goods_sold': 15,
     'ebt': 22,
-    'taxes': 24
+    'taxes': 24,
+    'accounts_receivable': 29,
+    'inventory': 30,
+    'accounts_payable': 37
 }
 
 
@@ -46,7 +54,7 @@ class CashConversionCycle:
         self._spreadsheet = SpreadSheet(0, total_columns)
         self._header(years)
         self._key_assumptions(sales_growth, interest_rate)
-        # self._cash_conversion_cycle()
+        self._cash_conversion_cycle()
         # self._income_statement(income_statement)
         # self._balance_sheet(balance_sheet)
 
@@ -85,16 +93,36 @@ class CashConversionCycle:
 
         # Tax Rate
         historical = [FormulaCell(f"{x}{R['taxes']} / {x}{R['ebt']}", Style.Percent) for x in "BCD"]
-        forecast = [FormulaCell(f"{x}{R['tax_rate']}", Style.Percent) for x in "DEFG"]
+        forecast = [FormulaCell(f"{x}{R['tax_rate']}", Style.Percent) for x in "EFGH"]
         row = ["Tax Rate"] + historical + forecast
         self._spreadsheet.append_row(row)
 
     def _cash_conversion_cycle(self):
+        row = ["Cash Conversion Cycle"]
+        self._spreadsheet.append_row(row)
+
         # Payables Period
-        historical = [FormulaCell(f"( {x}21 + {x}22 ) / ( {x}7 / 365 )") for x in "BCD"]
-        forecast = [FormulaCell(f"{x}5") for x in "DEFG"]
+        historical = [FormulaCell(f"( {x}{R['accounts_payable']} / ({x}{R['cost_of_goods_sold']} / 365)") for x in "BCD"]
+        forecast = [FormulaCell(f"( {x}{R['payables_period']}") for x in "EFGH"]
         row = ["Payables Period"] + historical + forecast
         self._spreadsheet.append_row(row)
+
+        # Receivables Period
+        historical = [FormulaCell(f"( {x}{R['accounts_receivable']} / ({x}{R['cost_of_goods_sold']} / 365)") for x in "BCDEFGH"]
+        row = ["Receivables Period"] + historical + forecast
+        self._spreadsheet.append_row(row)
+
+        # Inventory Period
+        historical = [FormulaCell(f"( {x}{R['inventory']} / ({x}{R['net_sales']} / 365)") for x in "BCDEFGH"]
+        row = ["Inventory Period"] + historical + forecast
+        self._spreadsheet.append_row(row)
+
+        # CCC
+        #=B10+B9-B8
+        historical = [FormulaCell(f"( {x}{R['inventory_period']} + {x}{R['recievables_period']} - {x}{R['payables_period']})") for x in "BCDEFGH"]
+        row = ["CCC"] + historical + forecast
+        self._spreadsheet.append_row(row)
+
 
     def _income_statement(self, income_statement: IncomeStatement):
         # Net Sales
