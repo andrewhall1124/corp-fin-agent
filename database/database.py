@@ -28,5 +28,6 @@ class Database:
         )
 
     def execute(self, query: str, parameters: tuple = ()):
-        self._cursor.execute(query, parameters)
+        cursor = self._cursor.execute(query, parameters)
         self._connection.commit()
+        return cursor.fetchall()
