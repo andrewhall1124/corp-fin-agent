@@ -46,7 +46,7 @@ with Database() as db:
                 accounts_payable,
                 notes_payable_bank AS short_term_debt,
                 long_term_debt_current_portion,
-                accrued_taxes,
+                accrued_taxes AS other_current_liabilities,
                 long_term_debt,
                 shareholders_equity AS share_holders_equity
             FROM {STG_TABLE}
@@ -67,7 +67,7 @@ with Database() as db:
             accounts_payable,
             short_term_debt,
             long_term_debt_current_portion,
-            accrued_taxes,
+            other_current_liabilities,
             long_term_debt,
             share_holders_equity
         )
@@ -81,7 +81,7 @@ with Database() as db:
             accounts_payable,
             short_term_debt,
             long_term_debt_current_portion,
-            accrued_taxes,
+            other_current_liabilities,
             long_term_debt,
             share_holders_equity
         FROM {XF_TABLE}

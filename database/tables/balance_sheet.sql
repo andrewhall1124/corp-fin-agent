@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS balance_sheet (
     accounts_payable REAL,
     short_term_debt REAL,
     long_term_debt_current_portion REAL,
-    accrued_taxes REAL,
     other_current_liabilities REAL,
     -- total current liabilities
 
