@@ -263,8 +263,9 @@ class SpreadSheet:
 
         return result
 
-    def to_df(self):
-        self._evaluate()
+    def to_df(self, evaluate: bool = True):
+        if evaluate:
+            self._evaluate()
         data = []
         for row in self._cells:
             new_row = {key: str(cell) for key, cell in row.items()}

@@ -10,9 +10,7 @@ def load_income_statement(company_id: int) -> IncomeStatement:
         SELECT 
             year,
             COALESCE(net_sales, 0),
-            COALESCE(other_pre_profit_income, 0),
             COALESCE(cost_of_goods_sold, 0),
-            COALESCE(other_pre_profit_expenses, 0),
             COALESCE(operating_expense, 0),
             COALESCE(interest_expense, 0),
             COALESCE(taxes, 0)
@@ -26,12 +24,10 @@ def load_income_statement(company_id: int) -> IncomeStatement:
         return IncomeStatement(
             year=[row[0] for row in results],
             net_sales=[row[1] for row in results],
-            other_pre_profit_income=[row[2] for row in results],
-            cost_of_goods_sold=[row[3] for row in results],
-            other_pre_profit_expenses=[row[4] for row in results],
-            operating_expense=[row[5] for row in results],
-            interest_expense=[row[6] for row in results],
-            taxes=[row[7] for row in results]
+            cost_of_goods_sold=[row[2] for row in results],
+            operating_expense=[row[3] for row in results],
+            interest_expense=[row[4] for row in results],
+            taxes=[row[5] for row in results]
         )
 
 def load_balance_sheet(company_id: int) -> IncomeStatement:
