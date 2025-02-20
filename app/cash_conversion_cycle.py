@@ -118,16 +118,18 @@ class CashConversionCycle:
         self._spreadsheet.append_row(row)
 
         # CCC
-        #=B10+B9-B8
         historical = [FormulaCell(f"( {x}{R['inventory_period']} + {x}{R['recievables_period']} - {x}{R['payables_period']})") for x in "BCDEFGH"]
         row = ["CCC"] + historical + forecast
         self._spreadsheet.append_row(row)
 
 
     def _income_statement(self, income_statement: IncomeStatement):
+        row = ["Income Statement"]
+        self._spreadsheet.append_row(row)
+        
         # Net Sales
-        historical = income_statement.net_sales
-        forecast = [FormulaCell(f"{x}6 * ( 1 + {y}2 )") for x, y in zip("DEFG", "EFGH")]
+        historical = [FormulaCell(f"( {x}{R['net_sales']})") for x in "BCD"]
+        forecast = [FormulaCell(f"( {x}{R['net_sales']} * ({y}{R['sales_growth']} + 1)") for x in "DEFG" for y in "EFGH"]
         row = ["Net Sales"] + historical + forecast
         self._spreadsheet.append_row(row)
 
