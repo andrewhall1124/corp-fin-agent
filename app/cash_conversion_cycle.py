@@ -34,7 +34,7 @@ R = {
     "total_current_liabilities": 40,
     "long_term_debt": 42,
     "total_liabilities": 43,
-    "shareholders_equities": 45,
+    "shareholders_equity": 45,
     "total_liabilities_and_equity": 46,
 }
 
@@ -67,12 +67,22 @@ class CashConversionCycle:
         total_columns = 2 + self._num_historical_cols + self._num_forecast_cols
         self._columns = string.ascii_uppercase[0:total_columns]
 
+        # Common columns
+        self._historical_cols = self._columns[1 : 1 + self._num_historical_cols]
+        self._percent_of_sales_col = self._columns[
+            1 + self._num_historical_cols + self._num_forecast_cols
+        ]
+        self._forecast_cols = self._columns[
+            1 + self._num_historical_cols : 1
+            + self._num_historical_cols
+            + self._num_forecast_cols
+        ]
         self._spreadsheet = SpreadSheet(0, total_columns)
         self._header(years)
         self._key_assumptions(sales_growth, interest_rate)
         self._cash_conversion_cycle()
-        # self._income_statement(income_statement)
-        # self._balance_sheet(balance_sheet)
+        self._income_statement(income_statement)
+        self._balance_sheet(balance_sheet)
 
     def _header(self, years):
         # Year headers
@@ -122,23 +132,25 @@ class CashConversionCycle:
         self._spreadsheet.append_row(row)
 
         # Tax Rate
-        columns_1 = self._columns[1 : 1 + self._num_historical_cols]
-        columns_2 = self._columns[
-            1 + self._num_historical_cols : 1
-            + self._num_historical_cols
+        columns = self._columns[
+            self._num_historical_cols : self._num_historical_cols
             + self._num_forecast_cols
         ]
         historical = [
             FormulaCell(f"{x}{R['taxes']} / {x}{R['ebt']}", Style.Percent)
-            for x in columns_1
+            for x in self._historical_cols
         ]
-        forecast = [
-            FormulaCell(f"{x}{R['tax_rate']}", Style.Percent) for x in columns_2
-        ]
+        forecast = [FormulaCell(f"{x}{R['tax_rate']}", Style.Percent) for x in columns]
         row = ["Tax Rate"] + historical + forecast
         self._spreadsheet.append_row(row)
 
+        # Blank Row
+        self._spreadsheet.append_row([])
+
     def _cash_conversion_cycle(self):
+        # Blank Row
+        self._spreadsheet.append_row([])
+
         row = ["Cash Conversion Cycle"]
         self._spreadsheet.append_row(row)
 
@@ -181,6 +193,9 @@ class CashConversionCycle:
         row = ["CCC"] + historical + forecast
         self._spreadsheet.append_row(row)
 
+        # Blank Row
+        self._spreadsheet.append_row([])
+
     def _income_statement(self, income_statement: IncomeStatement):
         row = ["Income Statement"]
         self._spreadsheet.append_row(row)
@@ -196,138 +211,297 @@ class CashConversionCycle:
         self._spreadsheet.append_row(row)
 
         # Cogs
-        historical = income_statement.cost_of_goods_sold
-        forecast = [FormulaCell(f"{x}6 * I7") for x in "EFGH"]
+        historical = [FormulaCell(f"( {x}{R['cost_of_goods_sold']})") for x in "BCD"]
+        forecast = [FormulaCell(f"( {x}{R['net_sales']} * I15") for x in "EFGH"]
         percent_of_sales = [
-            FormulaCell("sum([ B7 / B6 , C7 / C6 , D7 / D6 ]) / 3", Style.Percent)
+            FormulaCell(
+                f"( ( (B{R['cost_of_goods_sold']} / B{R['net_sales']}) + "
+                f"(C{R['cost_of_goods_sold']} / C{R['net_sales']}) + "
+                f"(D{R['cost_of_goods_sold']} / D{R['net_sales']}) ) / 3)",
+                Style.Percent,
+            )
         ]
         row = ["COGS"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
-        # Discount (fix later)
-        row = ["Discount"] + [0] * 3 + [0 for _ in range(4)]
+        # Gross Profit
+        historical = [
+            FormulaCell(f"( {x}{R['net_sales']} - ({x}{R['cost_of_goods_sold']})")
+            for x in "BCDEFGH"
+        ]
+        row = ["Gross Profit"] + historical + forecast
         self._spreadsheet.append_row(row)
 
+        # Blank Row
+        self._spreadsheet.append_row([])
+
         # Operating Expense
-        historical = income_statement.operating_expense
-        forecast = [FormulaCell(f"{x}6 * I9") for x in "EFGH"]
+        historical = [FormulaCell(f"( {x}{R['operating_expense']})") for x in "BCD"]
+        forecast = [FormulaCell(f"( {x}{R['net_sales']} * I18") for x in "EFGH"]
         percent_of_sales = [
-            FormulaCell("sum([ B9 / B6 , C9 / C6 , D9 / D6 ]) / 3", Style.Percent)
+            FormulaCell(
+                f"( ( (B{R['operating_expense']} / B{R['net_sales']}) + "
+                f"(C{R['operating_expense']} / C{R['net_sales']}) + "
+                f"(D{R['operating_expense']} / D{R['net_sales']}) ) / 3)",
+                Style.Percent,
+            )
         ]
         row = ["Operating Expense"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
-        # Interest Expense
-        historical = income_statement.interest_expense
-        forecast = [FormulaCell(f"{x}3 * {y}19") for x, y in zip("EFGH", "DEFG")]
-        row = ["Interest Expense"] + historical + forecast
+        # Operating Income (EBIT)
+        historical = [
+            FormulaCell(f"( {x}{R['gross_profit']} - ({x}{R['operating_expense']})")
+            for x in "BCDEFGH"
+        ]
+        row = ["Operating Income (EBIT)"] + historical + forecast
         self._spreadsheet.append_row(row)
 
-        # Pretax profits
-        row = ["Pretax Profits"] + [
-            FormulaCell(f"{x}6 - {x}7 + {x}8 - {x}9 - {x}10") for x in "BCDEFGH"
+        # Blank Row
+        self._spreadsheet.append_row([])
+
+        # Interest Expense
+        historical = [FormulaCell(f"( {x}{R['interest_expense']})") for x in "BCD"]
+        forecast = [
+            FormulaCell(f"{x}{R['short_term_debt']} * ({y}{R['interest_rate']})")
+            for x in "DEFG"
+            for y in "EFGH"
         ]
+        percent_of_sales = [
+            FormulaCell(
+                f"( ( (B{R['interest_expense']} / B{R['net_sales']}) + "
+                f"(C{R['interest_expense']} / C{R['net_sales']}) + "
+                f"(D{R['interest_expense']} / D{R['net_sales']}) ) / 3)",
+                Style.Percent,
+            )
+        ]
+        row = ["Interest Expense"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
+
+        # Pre-tax Income (EBT)
+        historical = [
+            FormulaCell(f"( {x}{R['operating_income']} - ({x}{R['interest_expense']})")
+            for x in "BCDEFGH"
+        ]
+        row = ["Pre-tax Income (EBT)"] + historical + forecast
+        self._spreadsheet.append_row(row)
+
+        # Blank Row
+        self._spreadsheet.append_row([])
 
         # Taxes
-        historical = income_statement.taxes
-        forecast = [FormulaCell(f"{x}4 * {x}11") for x in "EFGH"]
-        row = ["Taxes"] + historical + forecast
+        historical = [FormulaCell(f"( {x}{R['taxes']})") for x in "BCD"]
+        forecast = [
+            FormulaCell(f"( {x}{R['ebt']} * {x}{R['tax_rate']}") for x in "EFGH"
+        ]
+        percent_of_sales = [
+            FormulaCell(
+                f"( ( (B{R['taxes']} / B{R['net_sales']}) + "
+                f"(C{R['taxes']} / C{R['net_sales']}) + "
+                f"(D{R['taxes']} / D{R['net_sales']}) ) / 3)",
+                Style.Percent,
+            )
+        ]
+        row = ["Taxes"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # Net income
-        row = ["Net Income"] + [FormulaCell(f"{x}11 - {x}12") for x in "BCDEFGH"]
+        historical = [
+            FormulaCell(f"( {x}{R['ebt']} - ({x}{R['taxes']})") for x in "BCDEFGH"
+        ]
+        row = ["Net Income"] + historical + forecast
         self._spreadsheet.append_row(row)
+
+        # Blank Row
+        self._spreadsheet.append_row([])
 
     def _balance_sheet(self, balance_sheet: BalanceSheet):
         # Cash
         historical = balance_sheet.cash
-        forecast = [FormulaCell(f"{x}6 * I14") for x in "EFGH"]
+        ratios = " , ".join(
+            [
+                f"{col}{R['cash']} / {col}{R['net_sales']}"
+                for col in self._historical_cols
+            ]
+        )
         percent_of_sales = [
-            FormulaCell("sum([ B14 / B6 , C14 / C6 , D14 / D6 ]) / 3", Style.Percent)
+            FormulaCell(
+                f"sum([ {ratios} ]) / {self._num_historical_cols}", Style.Percent
+            )
+        ]
+        forecast = [
+            FormulaCell(
+                f"{x}{R['net_sales']} * {self._percent_of_sales_col}{R['cash']}"
+            )
+            for x in self._forecast_cols
         ]
         row = ["Cash"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
-        # A/R
+        # Accounts Receivable
         historical = balance_sheet.accounts_recievable
-        forecast = [FormulaCell(f"{x}6 * I15") for x in "EFGH"]
-        percent_of_sales = [
-            FormulaCell("sum([ B15 / B6 , C15 / C6 , D15 / D6 ]) / 3", Style.Percent)
+        forecast = [
+            FormulaCell(f"{x}6 * {self._percent_of_sales_col}15")
+            for x in self._forecast_cols
         ]
-        row = ["A/R"] + historical + forecast + percent_of_sales
+        ratios = " , ".join(
+            [
+                f"{col}{R['accounts_receivable']} / {col}{R['net_sales']}"
+                for col in self._historical_cols
+            ]
+        )
+        percent_of_sales = [
+            FormulaCell(
+                f"sum([ {ratios} ]) / {self._num_historical_cols}", Style.Percent
+            )
+        ]
+        row = ["Accounts Receivables"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
         # Inventory
         historical = balance_sheet.inventory
-        forecast = [FormulaCell(f"{x}6 * I16") for x in "EFGH"]
+        forecast = [
+            FormulaCell(
+                f"{x}{R['net_sales']} * {self._percent_of_sales_col}{R['inventory']}"
+            )
+            for x in self._forecast_cols
+        ]
+        ratios = " , ".join(
+            [
+                f"{col}{R['inventory']} / {col}{R['net_sales']}"
+                for col in self._historical_cols
+            ]
+        )
         percent_of_sales = [
-            FormulaCell("sum([ B16 / B6 , C16 / C6 , D16 / D6 ]) / 3", Style.Percent)
+            FormulaCell(
+                f"sum([ {ratios} ]) / {self._num_historical_cols}", Style.Percent
+            )
         ]
         row = ["Inventory"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
-        # PP&E
-        historical = balance_sheet.property_plant_and_equipment
-        forecast = [FormulaCell(f"{x}6 * I17") for x in "EFGH"]
-        percent_of_sales = [
-            FormulaCell("sum([ B17 / B6 , C17 / C6 , D17 / D6 ]) / 3", Style.Percent)
+        # Total Current Assets
+        row = ["Total Current Assets"] + [
+            FormulaCell(
+                f"sum([ {x}{R['cash']} , {x}{R['accounts_receivable']} , {x}{R['inventory']} ])"
+            )
+            for x in [*self._historical_cols, *self._forecast_cols]
         ]
-        row = ["PP&E"] + historical + forecast + percent_of_sales
+        self._spreadsheet.append_row(row)
+
+        # Blank Row
+        self._spreadsheet.append_row([])
+
+        # Property Plant and Equipment
+        historical = balance_sheet.property_plant_and_equipment
+        forecast = [
+            FormulaCell(
+                f"{x}{R['property_plant_and_equipment']} * {self._percent_of_sales_col}{R['property_plant_and_equipment']}"
+            )
+            for x in self._forecast_cols
+        ]
+        ratios = " , ".join(
+            [
+                f"{col}{R['property_plant_and_equipment']} / {col}{R['property_plant_and_equipment']}"
+                for col in self._historical_cols
+            ]
+        )
+        percent_of_sales = [
+            FormulaCell(
+                f"sum([ {ratios} ]) / {self._num_historical_cols}", Style.Percent
+            )
+        ]
+        row = (
+            ["Property Plant and Equipment"] + historical + forecast + percent_of_sales
+        )
         self._spreadsheet.append_row(row)
 
         # Total Assets
         row = ["Total Assets"] + [
-            FormulaCell(f"sum([ {x}14 , {x}15 , {x}16 , {x}17 ])") for x in "BCDEFGH"
+            FormulaCell(
+                f"{x}{R['total_current_assets']} + {x}{R['property_plant_and_equipment']}"
+            )
+            for x in [*self._historical_cols, *self._forecast_cols]
         ]
         self._spreadsheet.append_row(row)
 
-        # Notes Payable (PLUG)
+        # Blank Row
+        self._spreadsheet.append_row([])
+
+        # Short Term Debt (PLUG)
         historical = balance_sheet.short_term_debt
         forecast = [
-            FormulaCell(f"{x}18 - sum([ {x}22 , {x}23 , {x}24 , {x}25 , {x}26 ])")
-            for x in "EFGH"
+            FormulaCell(
+                f"{x}{R['total_assets']} - sum([ {x}{R['accounts_payable']} , {x}{R['long_term_debt_current_portion']} , {x}{R['other_short_term_liabilities']} , {x}{R['long_term_debt']} , {x}{R['shareholders_equity']} ])"
+            )
+            for x in self._forecast_cols
         ]
         row = ["Short Term Debt (PLUG)"] + historical + forecast
         self._spreadsheet.append_row(row)
 
-        # A/P
+        # Accounts Payable
         forecast = [FormulaCell(f"{x}5 * {x}7 / 365") for x in "EFGH"]
-        row = ["A/P"] + balance_sheet.accounts_payable + forecast
+        row = ["Accounts Payable"] + balance_sheet.accounts_payable + forecast
         self._spreadsheet.append_row(row)
 
-        # Accrued Expenses
-        historical = balance_sheet.other_current_liabilities
-        forecast = [FormulaCell(f"{x}6 * I23") for x in "EFGH"]
-        percent_of_sales = [
-            FormulaCell("sum([ B23 / B6 , C23 / C6 , D23 / D6 ]) / 3", Style.Percent)
-        ]
-        row = ["Accrued Expenses"] + historical + forecast + percent_of_sales
-        self._spreadsheet.append_row(row)
-
-        # Term Loan Current Portion
+        # Long Term Debt Current Portion
         row = (
-            ["Term Loan Current Portion"]
+            ["Long Term Debt Current Portion"]
             + balance_sheet.long_term_debt_current_portion
-            + [20 for _ in range(4)]
+            + [20 for _ in range(4)]  # TODO: Fix
         )
         self._spreadsheet.append_row(row)
 
-        # Term Loan
-        row = ["Term Loan"] + balance_sheet.long_term_debt + [80, 60, 40, 20]
+        # Other Short Term Liabilities
+        historical = balance_sheet.other_current_liabilities
+        forecast = [0 for _ in self._forecast_cols]
+        row = ["Other Short Term Liabilities"] + historical + forecast
         self._spreadsheet.append_row(row)
 
-        # Net Worth
-        forecast = [FormulaCell(f"{x}26 + {y}13") for x, y in zip("DEFG", "EFGH")]
-        row = ["Net Worth"] + balance_sheet.share_holders_equity + forecast
+        # Total Current Liabilities
+        row = ["Total Current Liabilities"] + [
+            FormulaCell(
+                f"{x}{R['short_term_debt']} + {x}{R['accounts_payable']} + {x}{R['long_term_debt_current_portion']} + {x}{R['other_short_term_liabilities']}"
+            )
+            for x in [*self._historical_cols, *self._forecast_cols]
+        ]
+        self._spreadsheet.append_row(row)
+
+        # Blank Row
+        self._spreadsheet.append_row([])
+
+        # Long Term Debt
+        row = ["Long Term Debt"] + balance_sheet.long_term_debt + [80, 60, 40, 20]
         self._spreadsheet.append_row(row)
 
         # Total Liabilities
         row = ["Total Liabilities"] + [
             FormulaCell(
-                f"sum([ {x}19 , {x}20 , {x}21 , {x}22 , {x}23 , {x}24 , {x}25 , {x}26 ])"
+                f"{x}{R['total_current_liabilities']} + {x}{R['long_term_debt']}"
             )
-            for x in "BCDEFGH"
+            for x in [*self._historical_cols, *self._forecast_cols]
+        ]
+        self._spreadsheet.append_row(row)
+
+        # Blank Row
+        self._spreadsheet.append_row([])
+
+        # Shareholders Equity
+        columns = self._columns[
+            self._num_historical_cols : self._num_historical_cols
+            + self._num_forecast_cols
+        ]
+        forecast = [
+            FormulaCell(f"{x}{R['shareholders_equity']} + {y}{R['net_income']}")
+            for x, y in zip(columns, self._forecast_cols)
+        ]
+        row = ["Net Worth"] + balance_sheet.share_holders_equity + forecast
+        self._spreadsheet.append_row(row)
+
+        # Total Liabilities and Equity
+        row = ["Total Liabilities and Equity"] + [
+            FormulaCell(f"{x}{R['total_liabilities']} + {x}{R['shareholders_equity']}")
+            for x in [*self._historical_cols, *self._forecast_cols]
         ]
         self._spreadsheet.append_row(row)
 
