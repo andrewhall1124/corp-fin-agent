@@ -5,42 +5,41 @@ from spreadsheet import FormulaCell, SpreadSheet, Style, ValueCell
 from statements import IncomeStatement, BalanceSheet
 
 R = {
-    'sales_growth': 3,
-    'interest_rate': 4,
-    'tax_rate': 5,
-    'payables_period': 8,
-    'recievables_period': 9,
-    'inventory_period': 10,
-    'ccc': 11,
-    'net_sales': 14,
-    'cost_of_goods_sold': 15,
-    'gross_profit': 16,
-    'operating_expense': 18,
-    'operating_income': 19,
-    'interest_expense': 21,
-    'ebt': 22,
-    'taxes': 24,
-    'net_income': 25,
-    'cash': 28,
-    'accounts_receivable': 29,
-    'inventory': 30,
-    'total_current_assets': 31,
-    'property_plant_and_equipment': 33,
-    'total_assets': 34,
-    'short_term_debt': 36,
-    'accounts_payable': 37,
-    'long_term_debt_current_portion': 38,
-    'other_short_term_liabilities': 39,
-    'total_current_liabilities': 40,
-    'long_term_debt': 42,
-    'total_liabilities': 43,
-    'shareholders_equities': 45,
-    'total_liabilities_and_equity': 46
+    "sales_growth": 3,
+    "interest_rate": 4,
+    "tax_rate": 5,
+    "payables_period": 8,
+    "recievables_period": 9,
+    "inventory_period": 10,
+    "ccc": 11,
+    "net_sales": 14,
+    "cost_of_goods_sold": 15,
+    "gross_profit": 16,
+    "operating_expense": 18,
+    "operating_income": 19,
+    "interest_expense": 21,
+    "ebt": 22,
+    "taxes": 24,
+    "net_income": 25,
+    "cash": 28,
+    "accounts_receivable": 29,
+    "inventory": 30,
+    "total_current_assets": 31,
+    "property_plant_and_equipment": 33,
+    "total_assets": 34,
+    "short_term_debt": 36,
+    "accounts_payable": 37,
+    "long_term_debt_current_portion": 38,
+    "other_short_term_liabilities": 39,
+    "total_current_liabilities": 40,
+    "long_term_debt": 42,
+    "total_liabilities": 43,
+    "shareholders_equities": 45,
+    "total_liabilities_and_equity": 46,
 }
 
 
 class CashConversionCycle:
-
     def __init__(
         self,
         income_statement: IncomeStatement,
@@ -49,18 +48,19 @@ class CashConversionCycle:
         interest_rate: float,
         num_forecast_cols: int,
     ) -> None:
-
         diff1 = set(income_statement.year) - set(balance_sheet.year)
         diff2 = set(balance_sheet.year) - set(income_statement.year)
 
         if len(diff1) > 0 or len(diff2) > 0:
             msg = "Income and Balance Statement years do not match."
             raise ValueError(msg)
-        
+
         historical_years = income_statement.year
         self._num_historical_cols = len(income_statement.year)
 
-        forecast_years = [max(historical_years) + i for i in range(1, num_forecast_cols + 1)]
+        forecast_years = [
+            max(historical_years) + i for i in range(1, num_forecast_cols + 1)
+        ]
         self._num_forecast_cols = num_forecast_cols
         years = sorted(historical_years) + sorted(forecast_years)
 
@@ -76,29 +76,37 @@ class CashConversionCycle:
 
     def _header(self, years):
         # Year headers
-        row = (
-            ["Year"] + [str(year) for year in years] + ["Percent of Sales"]
-        )
+        row = ["Year"] + [str(year) for year in years] + ["Percent of Sales"]
         self._spreadsheet.append_row(row)
 
         # Column Sub Headers
-        row = ["Item"] + ["Actual" for _ in range(self._num_historical_cols)] + ["Forecast" for _ in range(self._num_forecast_cols)]
+        row = (
+            ["Item"]
+            + ["Actual" for _ in range(self._num_historical_cols)]
+            + ["Forecast" for _ in range(self._num_forecast_cols)]
+        )
         self._spreadsheet.append_row(row)
 
     def _key_assumptions(self, sales_growth: float, interest_rate: float):
         # Section Header
-        row = ['Key Assumptions']
+        row = ["Key Assumptions"]
         self._spreadsheet.append_row(row)
 
         # Sales Growth
-        columns_1 = self._columns[1: self._num_historical_cols]
-        columns_2 = self._columns[2: 1 + self._num_historical_cols]
+        columns_1 = self._columns[1 : self._num_historical_cols]
+        columns_2 = self._columns[2 : 1 + self._num_historical_cols]
 
         historical = [None] + [
-            FormulaCell(f"( {y}{R['net_sales']} - {x}{R['net_sales']} ) / {x}{R['net_sales']}", Style.Percent)
+            FormulaCell(
+                f"( {y}{R['net_sales']} - {x}{R['net_sales']} ) / {x}{R['net_sales']}",
+                Style.Percent,
+            )
             for x, y in zip(columns_1, columns_2)
         ]
-        forecast = [ValueCell(sales_growth, Style.Percent) for _ in range(self._num_forecast_cols)]
+        forecast = [
+            ValueCell(sales_growth, Style.Percent)
+            for _ in range(self._num_forecast_cols)
+        ]
         row = ["Sales Growth"] + historical + forecast
         self._spreadsheet.append_row(row)
 
@@ -106,15 +114,27 @@ class CashConversionCycle:
         row = (
             ["Interest Rate"]
             + [None for _ in range(3)]
-            + [ValueCell(interest_rate, Style.Percent) for _ in range(self._num_forecast_cols)]
+            + [
+                ValueCell(interest_rate, Style.Percent)
+                for _ in range(self._num_forecast_cols)
+            ]
         )
         self._spreadsheet.append_row(row)
 
         # Tax Rate
-        columns_1 = self._columns[1: 1 + self._num_historical_cols]
-        columns_2 = self._columns[1 + self._num_historical_cols: 1 + self._num_historical_cols + self._num_forecast_cols]
-        historical = [FormulaCell(f"{x}{R['taxes']} / {x}{R['ebt']}", Style.Percent) for x in columns_1]
-        forecast = [FormulaCell(f"{x}{R['tax_rate']}", Style.Percent) for x in columns_2]
+        columns_1 = self._columns[1 : 1 + self._num_historical_cols]
+        columns_2 = self._columns[
+            1 + self._num_historical_cols : 1
+            + self._num_historical_cols
+            + self._num_forecast_cols
+        ]
+        historical = [
+            FormulaCell(f"{x}{R['taxes']} / {x}{R['ebt']}", Style.Percent)
+            for x in columns_1
+        ]
+        forecast = [
+            FormulaCell(f"{x}{R['tax_rate']}", Style.Percent) for x in columns_2
+        ]
         row = ["Tax Rate"] + historical + forecast
         self._spreadsheet.append_row(row)
 
@@ -123,34 +143,55 @@ class CashConversionCycle:
         self._spreadsheet.append_row(row)
 
         # Payables Period
-        historical = [FormulaCell(f"( {x}{R['accounts_payable']} / ({x}{R['cost_of_goods_sold']} / 365)") for x in "BCD"]
+        historical = [
+            FormulaCell(
+                f"( {x}{R['accounts_payable']} / ({x}{R['cost_of_goods_sold']} / 365)"
+            )
+            for x in "BCD"
+        ]
         forecast = [FormulaCell(f"( {x}{R['payables_period']}") for x in "EFGH"]
         row = ["Payables Period"] + historical + forecast
         self._spreadsheet.append_row(row)
 
         # Receivables Period
-        historical = [FormulaCell(f"( {x}{R['accounts_receivable']} / ({x}{R['cost_of_goods_sold']} / 365)") for x in "BCDEFGH"]
+        historical = [
+            FormulaCell(
+                f"( {x}{R['accounts_receivable']} / ({x}{R['cost_of_goods_sold']} / 365)"
+            )
+            for x in "BCDEFGH"
+        ]
         row = ["Receivables Period"] + historical + forecast
         self._spreadsheet.append_row(row)
 
         # Inventory Period
-        historical = [FormulaCell(f"( {x}{R['inventory']} / ({x}{R['net_sales']} / 365)") for x in "BCDEFGH"]
+        historical = [
+            FormulaCell(f"( {x}{R['inventory']} / ({x}{R['net_sales']} / 365)")
+            for x in "BCDEFGH"
+        ]
         row = ["Inventory Period"] + historical + forecast
         self._spreadsheet.append_row(row)
 
         # CCC
-        historical = [FormulaCell(f"( {x}{R['inventory_period']} + {x}{R['recievables_period']} - {x}{R['payables_period']})") for x in "BCDEFGH"]
+        historical = [
+            FormulaCell(
+                f"( {x}{R['inventory_period']} + {x}{R['recievables_period']} - {x}{R['payables_period']})"
+            )
+            for x in "BCDEFGH"
+        ]
         row = ["CCC"] + historical + forecast
         self._spreadsheet.append_row(row)
-
 
     def _income_statement(self, income_statement: IncomeStatement):
         row = ["Income Statement"]
         self._spreadsheet.append_row(row)
-        
+
         # Net Sales
         historical = [FormulaCell(f"( {x}{R['net_sales']})") for x in "BCD"]
-        forecast = [FormulaCell(f"( {x}{R['net_sales']} * ({y}{R['sales_growth']} + 1)") for x in "DEFG" for y in "EFGH"]
+        forecast = [
+            FormulaCell(f"( {x}{R['net_sales']} * ({y}{R['sales_growth']} + 1)")
+            for x in "DEFG"
+            for y in "EFGH"
+        ]
         row = ["Net Sales"] + historical + forecast
         self._spreadsheet.append_row(row)
 
@@ -295,7 +336,8 @@ class CashConversionCycle:
 
     def to_df(self):
         return self._spreadsheet.to_df(evaluate=False)
-    
+
+
 if __name__ == "__main__":
     company_id = 1
 
@@ -303,11 +345,11 @@ if __name__ == "__main__":
     balance_sheet = dao.load_balance_sheet(company_id)
 
     ccc = CashConversionCycle(
-        income_statement, 
-        balance_sheet, 
-        sales_growth=.25, 
-        interest_rate=.05,
-        num_forecast_cols=4
+        income_statement,
+        balance_sheet,
+        sales_growth=0.25,
+        interest_rate=0.05,
+        num_forecast_cols=4,
     )
 
     print(ccc.to_df())
