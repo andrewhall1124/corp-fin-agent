@@ -1,6 +1,4 @@
-from dataclasses import dataclass
 import dao
-import pandas as pd
 import string
 
 from spreadsheet import FormulaCell, SpreadSheet, Style, ValueCell
@@ -16,11 +14,28 @@ R = {
     'ccc': 11,
     'net_sales': 14,
     'cost_of_goods_sold': 15,
+    'gross_profit': 16,
+    'operating_expense': 18,
+    'operating_income': 19,
+    'interest_expense': 21,
     'ebt': 22,
     'taxes': 24,
+    'net_income': 25,
+    'cash': 28,
     'accounts_receivable': 29,
     'inventory': 30,
-    'accounts_payable': 37
+    'total_current_assets': 31,
+    'property_plant_and_equipment': 33,
+    'total_assets': 34,
+    'short_term_debt': 36,
+    'accounts_payable': 37,
+    'long_term_debt_current_portion': 38,
+    'other_short_term_liabilities': 39,
+    'total_current_liabilities': 40,
+    'long_term_debt': 42,
+    'total_liabilities': 43,
+    'shareholders_equities': 45,
+    'total_liabilities_and_equity': 46
 }
 
 
@@ -43,12 +58,13 @@ class CashConversionCycle:
             raise ValueError(msg)
         
         historical_years = income_statement.year
-        num_historical_cols = len(income_statement.year)
+        self._num_historical_cols = len(income_statement.year)
 
         forecast_years = [max(historical_years) + i for i in range(1, num_forecast_cols + 1)]
+        self._num_forecast_cols = num_forecast_cols
         years = sorted(historical_years) + sorted(forecast_years)
 
-        total_columns = 2 + num_historical_cols + num_forecast_cols
+        total_columns = 2 + self._num_historical_cols + self._num_forecast_cols
         self._columns = string.ascii_uppercase[0:total_columns]
 
         self._spreadsheet = SpreadSheet(0, total_columns)
@@ -66,7 +82,7 @@ class CashConversionCycle:
         self._spreadsheet.append_row(row)
 
         # Column Sub Headers
-        row = ["Item"] + ["Actual" for _ in range(3)] + ["Forecast" for _ in range(4)]
+        row = ["Item"] + ["Actual" for _ in range(self._num_historical_cols)] + ["Forecast" for _ in range(self._num_forecast_cols)]
         self._spreadsheet.append_row(row)
 
     def _key_assumptions(self, sales_growth: float, interest_rate: float):
@@ -75,11 +91,14 @@ class CashConversionCycle:
         self._spreadsheet.append_row(row)
 
         # Sales Growth
+        columns_1 = self._columns[1: self._num_historical_cols]
+        columns_2 = self._columns[2: 1 + self._num_historical_cols]
+
         historical = [None] + [
             FormulaCell(f"( {y}{R['net_sales']} - {x}{R['net_sales']} ) / {x}{R['net_sales']}", Style.Percent)
-            for x, y in zip("BC", "CD")
+            for x, y in zip(columns_1, columns_2)
         ]
-        forecast = [ValueCell(sales_growth, Style.Percent) for _ in range(4)]
+        forecast = [ValueCell(sales_growth, Style.Percent) for _ in range(self._num_forecast_cols)]
         row = ["Sales Growth"] + historical + forecast
         self._spreadsheet.append_row(row)
 
@@ -87,13 +106,15 @@ class CashConversionCycle:
         row = (
             ["Interest Rate"]
             + [None for _ in range(3)]
-            + [ValueCell(interest_rate, Style.Percent) for _ in range(4)]
+            + [ValueCell(interest_rate, Style.Percent) for _ in range(self._num_forecast_cols)]
         )
         self._spreadsheet.append_row(row)
 
         # Tax Rate
-        historical = [FormulaCell(f"{x}{R['taxes']} / {x}{R['ebt']}", Style.Percent) for x in "BCD"]
-        forecast = [FormulaCell(f"{x}{R['tax_rate']}", Style.Percent) for x in "EFGH"]
+        columns_1 = self._columns[1: 1 + self._num_historical_cols]
+        columns_2 = self._columns[1 + self._num_historical_cols: 1 + self._num_historical_cols + self._num_forecast_cols]
+        historical = [FormulaCell(f"{x}{R['taxes']} / {x}{R['ebt']}", Style.Percent) for x in columns_1]
+        forecast = [FormulaCell(f"{x}{R['tax_rate']}", Style.Percent) for x in columns_2]
         row = ["Tax Rate"] + historical + forecast
         self._spreadsheet.append_row(row)
 
