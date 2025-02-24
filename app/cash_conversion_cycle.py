@@ -201,18 +201,14 @@ class CashConversionCycle:
         self._spreadsheet.append_row(row)
 
         # Net Sales
-        historical = [FormulaCell(f"( {x}{R['net_sales']})") for x in "BCD"]
-        forecast = [
-            FormulaCell(f"( {x}{R['net_sales']} * ({y}{R['sales_growth']} + 1)")
-            for x in "DEFG"
-            for y in "EFGH"
-        ]
+        historical = income_statement.net_sales
+        forecast = [FormulaCell(f"( {x}{R['net_sales']} * ({y}{R['sales_growth']} + 1))") for x, y in zip("DEFG", "EFGH")]
         row = ["Net Sales"] + historical + forecast
         self._spreadsheet.append_row(row)
 
-        # Cogs
-        historical = [FormulaCell(f"( {x}{R['cost_of_goods_sold']})") for x in "BCD"]
-        forecast = [FormulaCell(f"( {x}{R['net_sales']} * I15") for x in "EFGH"]
+        # COGS
+        historical = income_statement.cost_of_goods_sold
+        forecast = [FormulaCell(f"( {x}{R['net_sales']} * I15)") for x in "EFGH"]
         percent_of_sales = [
             FormulaCell(
                 f"( ( (B{R['cost_of_goods_sold']} / B{R['net_sales']}) + "
@@ -225,19 +221,16 @@ class CashConversionCycle:
         self._spreadsheet.append_row(row)
 
         # Gross Profit
-        historical = [
-            FormulaCell(f"( {x}{R['net_sales']} - ({x}{R['cost_of_goods_sold']})")
-            for x in "BCDEFGH"
-        ]
-        row = ["Gross Profit"] + historical + forecast
+        historical = [FormulaCell(f"( {x}{R['net_sales']} - {x}{R['cost_of_goods_sold']} )") for x in "BCDEFGH"]
+        row = ["Gross Profit"] + historical
         self._spreadsheet.append_row(row)
 
         # Blank Row
         self._spreadsheet.append_row([])
 
         # Operating Expense
-        historical = [FormulaCell(f"( {x}{R['operating_expense']})") for x in "BCD"]
-        forecast = [FormulaCell(f"( {x}{R['net_sales']} * I18") for x in "EFGH"]
+        historical = income_statement.operating_expense
+        forecast = [FormulaCell(f"( {x}{R['net_sales']} * I18)") for x in "EFGH"]
         percent_of_sales = [
             FormulaCell(
                 f"( ( (B{R['operating_expense']} / B{R['net_sales']}) + "
@@ -250,23 +243,16 @@ class CashConversionCycle:
         self._spreadsheet.append_row(row)
 
         # Operating Income (EBIT)
-        historical = [
-            FormulaCell(f"( {x}{R['gross_profit']} - ({x}{R['operating_expense']})")
-            for x in "BCDEFGH"
-        ]
-        row = ["Operating Income (EBIT)"] + historical + forecast
+        historical = [FormulaCell(f"( {x}{R['gross_profit']} - {x}{R['operating_expense']} )") for x in "BCDEFGH"]
+        row = ["Operating Income (EBIT)"] + historical
         self._spreadsheet.append_row(row)
 
         # Blank Row
         self._spreadsheet.append_row([])
 
         # Interest Expense
-        historical = [FormulaCell(f"( {x}{R['interest_expense']})") for x in "BCD"]
-        forecast = [
-            FormulaCell(f"{x}{R['short_term_debt']} * ({y}{R['interest_rate']})")
-            for x in "DEFG"
-            for y in "EFGH"
-        ]
+        historical = income_statement.interest_expense
+        forecast = [FormulaCell(f"( {x}{R['short_term_debt']} * {y}{R['interest_rate']} )") for x, y in zip("DEFG", "EFGH")]
         percent_of_sales = [
             FormulaCell(
                 f"( ( (B{R['interest_expense']} / B{R['net_sales']}) + "
@@ -279,21 +265,16 @@ class CashConversionCycle:
         self._spreadsheet.append_row(row)
 
         # Pre-tax Income (EBT)
-        historical = [
-            FormulaCell(f"( {x}{R['operating_income']} - ({x}{R['interest_expense']})")
-            for x in "BCDEFGH"
-        ]
-        row = ["Pre-tax Income (EBT)"] + historical + forecast
+        historical = [FormulaCell(f"( {x}{R['operating_income']} - {x}{R['interest_expense']} )") for x in "BCDEFGH"]
+        row = ["Pre-tax Income (EBT)"] + historical
         self._spreadsheet.append_row(row)
 
         # Blank Row
         self._spreadsheet.append_row([])
 
         # Taxes
-        historical = [FormulaCell(f"( {x}{R['taxes']})") for x in "BCD"]
-        forecast = [
-            FormulaCell(f"( {x}{R['ebt']} * {x}{R['tax_rate']}") for x in "EFGH"
-        ]
+        historical = income_statement.taxes
+        forecast = [FormulaCell(f"( {x}{R['ebt']} * {x}{R['tax_rate']} )") for x in "EFGH"]
         percent_of_sales = [
             FormulaCell(
                 f"( ( (B{R['taxes']} / B{R['net_sales']}) + "
@@ -305,15 +286,14 @@ class CashConversionCycle:
         row = ["Taxes"] + historical + forecast + percent_of_sales
         self._spreadsheet.append_row(row)
 
-        # Net income
-        historical = [
-            FormulaCell(f"( {x}{R['ebt']} - ({x}{R['taxes']})") for x in "BCDEFGH"
-        ]
-        row = ["Net Income"] + historical + forecast
+        # Net Income
+        historical = [FormulaCell(f"( {x}{R['ebt']} - {x}{R['taxes']} )") for x in "BCDEFGH"]
+        row = ["Net Income"] + historical
         self._spreadsheet.append_row(row)
 
         # Blank Row
         self._spreadsheet.append_row([])
+
 
     def _balance_sheet(self, balance_sheet: BalanceSheet):
         # Cash
