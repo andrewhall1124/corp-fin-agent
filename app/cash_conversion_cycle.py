@@ -430,7 +430,7 @@ class CashConversionCycle:
         row = (
             ["Long Term Debt Current Portion"]
             + balance_sheet.long_term_debt_current_portion
-            + [20 for _ in range(4)]  # TODO: Fix
+            + [20 for _ in range(4)][0: self._num_forecast_cols]  # TODO: Fix
         )
         self._spreadsheet.append_row(row)
 
@@ -453,7 +453,7 @@ class CashConversionCycle:
         self._spreadsheet.append_row([])
 
         # Long Term Debt
-        row = ["Long Term Debt"] + balance_sheet.long_term_debt + [80, 60, 40, 20]
+        row = ["Long Term Debt"] + balance_sheet.long_term_debt + [80, 60, 40, 20][0: self._num_forecast_cols] # TODO: Fix
         self._spreadsheet.append_row(row)
 
         # Total Liabilities
