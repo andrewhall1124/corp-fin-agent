@@ -3,7 +3,7 @@ import pandas as pd
 
 
 class Database:
-    def __init__(self, database_path="database/company_financials.db") -> None:
+    def __init__(self, database_path="app/database/company_financials.db") -> None:
         self._database = database_path
         self._connection: sql.Connection = None
         self._cursor: sql.Cursor = None
