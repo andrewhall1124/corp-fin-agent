@@ -9,7 +9,7 @@ st.title("Cashflow Conversion Cycle")
 col1, col2 = st.columns(2)
 
 with col1:
-    col1a, col1b, col1c = st.columns(3)
+    col1a, col1b, col1c, col1d = st.columns(4)
     
     company_options = {
         "Clarkson": 1,
@@ -23,6 +23,8 @@ with col1:
     with col1c:
         selected_company = st.selectbox("Select Company", options=list(company_options.keys()))
         company_id = company_options[selected_company]
+    with col1d:
+        num_forecast_cols = st.number_input("Number of Forecast Columns", value=4)
 
 income_statement = dao.load_income_statement(company_id)
 balance_sheet = dao.load_balance_sheet(company_id)
@@ -32,7 +34,7 @@ ccc = CashConversionCycle(
     balance_sheet,
     sales_growth=sales_growth / 100,
     interest_rate=interest_rate / 100,
-    num_forecast_cols=4,
+    num_forecast_cols=num_forecast_cols,
 )
 
 df = ccc.to_df()
@@ -44,14 +46,18 @@ def highlight_cells(df):
     header_rows = [2, 7, 13, 27]
     for row in header_rows:
         for col in df.columns:
-            highlighted.loc[row, col] = 'background-color: #666666; color: black; border-bottom: 2px solid black'
+            highlighted.loc[row, col] = 'background-color: #666666; color: white; border-bottom: 2px solid black'
     
-    # Highlight goal cells with amber
+    # Highlight ccc cells with amber
     for row in range(8, 12):
-        for col in ['E', 'F', 'G', 'H']:
+        for col in ccc._forecast_cols:
             highlighted.loc[row, col] = 'background-color: rgba(255, 193, 7, 0.3)'
+
+    # Highlight plug cells with amber
+    for col in ccc._forecast_cols:
+        highlighted.loc[36, col] = 'background-color: rgba(255, 193, 7, 0.3)'
     
     return highlighted
 
 styled_df = df.style.apply(highlight_cells, axis=None)
-st.dataframe(styled_df, use_container_width=True)
+st.dataframe(styled_df, use_container_width=True, height=1700)
