@@ -1,5 +1,5 @@
 import pandas as pd
-from database.database import Database
+from app.database.database import Database
 
 COMPANY_ID = 2
 TABLE_NAME = "playtime_is"
@@ -7,7 +7,7 @@ STG_TABLE = TABLE_NAME + "_stg"
 XF_TABLE = TABLE_NAME + "_xf"
 
 # Import raw
-df = pd.read_csv("data/playtime_is.csv")
+df = pd.read_csv("app/data/playtime_is.csv")
 
 # Rename columns
 df["value"] = df["value"].str.lower()
