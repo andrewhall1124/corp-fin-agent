@@ -153,7 +153,7 @@ class SpreadSheet:
         # Recursive depth first search algorithm
         def dfs(cell_loc: str) -> None:
             if cell_loc in temp_visited:
-                raise ValueError("Circular dependency detected")
+                raise ValueError(f"Circular dependency detected: {cell_loc} ({temp_visited})")
 
             if cell_loc in visited:
                 return
@@ -221,7 +221,11 @@ class SpreadSheet:
             eval_formula = eval_formula.replace(dep_loc, str(dep_value))
 
         # Evaluate the formula using Python's eval
-        result = eval(eval_formula)
+        try:
+            result = eval(eval_formula)
+        except BaseException as e:
+            raise Exception(f"Error in {cell_loc}: {e}")
+
         cell.value = result
 
         # Set cell value
