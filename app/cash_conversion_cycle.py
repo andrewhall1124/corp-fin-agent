@@ -48,12 +48,11 @@ class CashConversionCycle:
         interest_rate: float,
         num_forecast_cols: int,
     ) -> None:
-        diff1 = set(income_statement.year) - set(balance_sheet.year)
-        diff2 = set(balance_sheet.year) - set(income_statement.year)
+        # Save parameters
+        self._num_forecast_cols = num_forecast_cols
 
-        if len(diff1) > 0 or len(diff2) > 0:
-            msg = "Income and Balance Statement years do not match."
-            raise ValueError(msg)
+        # Check columns
+        self._check_columns(income_statement, balance_sheet)
 
         historical_years = income_statement.year
         self._num_historical_cols = len(income_statement.year)
@@ -61,8 +60,7 @@ class CashConversionCycle:
         forecast_years = [
             max(historical_years) + i for i in range(1, num_forecast_cols + 1)
         ]
-        self._num_forecast_cols = num_forecast_cols
-        years = sorted(historical_years) + sorted(forecast_years)
+        years = historical_years + forecast_years
 
         total_columns = 2 + self._num_historical_cols + self._num_forecast_cols
         self._columns = string.ascii_uppercase[0:total_columns]
@@ -83,6 +81,15 @@ class CashConversionCycle:
         self._cash_conversion_cycle()
         self._income_statement(income_statement)
         self._balance_sheet(balance_sheet)
+
+    @staticmethod
+    def _check_columns(income_statement: IncomeStatement, balance_sheet: BalanceSheet):
+        diff1 = set(income_statement.year) - set(balance_sheet.year)
+        diff2 = set(balance_sheet.year) - set(income_statement.year)
+
+        if len(diff1) > 0 or len(diff2) > 0:
+            msg = "Income and Balance Statement years do not match."
+            raise ValueError(msg)
 
     def _header(self, years):
         # Year headers
