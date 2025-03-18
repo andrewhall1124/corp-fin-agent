@@ -1,0 +1,27 @@
+﻿value,2003,2004,2005,2006
+sales_growth_rate,,,24.30%,19.80%
+tax_rate,,44.10%,44.10%,40.10%
+dividend_payout_rate,,36.00%,38.20%,38.50%
+short_term_interest_rate,,6.30%,6.50%,7.20%
+long_term_interest_rate,,5.30%,5.50%,6.00%
+sales,,$62.50 ,$77.67 ,$93.02 
+cost_of_goods_sold,,$39.12 ,$50.58 ,$60.19 
+sales_general_and_administrative_expenses,,$4.88 ,$5.74 ,$6.84 
+depreciation,,$4.27 ,$4.90 ,$6.61 
+interest_expense,,$3.67 ,$5.05 ,$6.71 
+pre_tax_income,,$10.56 ,$11.41 ,$12.68 
+taxes,,$4.66 ,$5.04 ,$5.09 
+net_income,,$5.90 ,$6.37 ,$7.59 
+dividends,,$2.12 ,$2.43 ,$2.92 
+addition_to_retained_earnings,,$3.78 ,$3.94 ,$4.67 
+cash,$2.86 ,$4.27 ,$5.11 ,$5.92 
+accounts_recievables,$13.79 ,$16.34 ,$19.28 ,$22.85 
+inventory,$17.91 ,$20.40 ,$24.62 ,$28.99 
+property_plant_and_equipment,$222.20 ,$284.03 ,$337.59 ,$410.90 
+accumulated_depreciation,$66.14 ,$70.41 ,$75.31 ,$81.91 
+net_ppe,$156.06 ,$213.62 ,$262.28 ,$328.98 
+accounts_payables,$21.33 ,$42.50 ,$56.17 ,$63.25 
+short_term_debt,$20.68 ,$28.83 ,$43.45 ,$53.26 d
+long_term_debt,$26.80 ,$30.91 ,$35.24 ,$48.93 
+paid_in_capital,$60.30 ,$87.10 ,$107.20 ,$147.40 
+retained_earnings,$61.51 ,$65.29 ,$69.23 ,$73.90 
