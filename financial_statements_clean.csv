@@ -1,27 +1,26 @@
-﻿value,2003,2004,2005,2006
-sales_growth_rate,,,24.30%,19.80%
-tax_rate,,44.10%,44.10%,40.10%
-dividend_payout_rate,,36.00%,38.20%,38.50%
-short_term_interest_rate,,6.30%,6.50%,7.20%
-long_term_interest_rate,,5.30%,5.50%,6.00%
-sales,,$62.50 ,$77.67 ,$93.02 
-cost_of_goods_sold,,$39.12 ,$50.58 ,$60.19 
-sales_general_and_administrative_expenses,,$4.88 ,$5.74 ,$6.84 
-depreciation,,$4.27 ,$4.90 ,$6.61 
-interest_expense,,$3.67 ,$5.05 ,$6.71 
-pre_tax_income,,$10.56 ,$11.41 ,$12.68 
-taxes,,$4.66 ,$5.04 ,$5.09 
-net_income,,$5.90 ,$6.37 ,$7.59 
-dividends,,$2.12 ,$2.43 ,$2.92 
-addition_to_retained_earnings,,$3.78 ,$3.94 ,$4.67 
-cash,$2.86 ,$4.27 ,$5.11 ,$5.92 
-accounts_recievables,$13.79 ,$16.34 ,$19.28 ,$22.85 
-inventory,$17.91 ,$20.40 ,$24.62 ,$28.99 
-property_plant_and_equipment,$222.20 ,$284.03 ,$337.59 ,$410.90 
-accumulated_depreciation,$66.14 ,$70.41 ,$75.31 ,$81.91 
-net_ppe,$156.06 ,$213.62 ,$262.28 ,$328.98 
-accounts_payables,$21.33 ,$42.50 ,$56.17 ,$63.25 
-short_term_debt,$20.68 ,$28.83 ,$43.45 ,$53.26 d
-long_term_debt,$26.80 ,$30.91 ,$35.24 ,$48.93 
-paid_in_capital,$60.30 ,$87.10 ,$107.20 ,$147.40 
-retained_earnings,$61.51 ,$65.29 ,$69.23 ,$73.90 
+﻿item,2003,2004,2005,2006
+sales_growth_rate,,,0.2428173,0.1976193
+tax_rate,,0.4410000,0.4410000,0.4010000
+dividend_payout_rate,,0.3599523,0.3815443,0.3850000
+short_term_interest_rate,,0.0630000,0.0650000,0.0715000
+long_term_interest_rate,,0.0530000,0.0550000,0.0596000
+sales,,62.4976000,77.6731000,93.0228000
+cost_of_goods_sold,,39.1213000,50.5783000,60.1861000
+selling_general_and_administrative_costs,,4.8776000,5.7352000,6.8407000
+depreciation_expense,,4.2679000,4.8977000,6.6062000
+interest_expense,,3.6670956,5.0491415,6.7100000
+pre_tax_income,,10.5637044,11.4127585,12.6798000
+taxes,,4.6632000,5.0384000,5.0920000
+dividends,,2.1239000,2.4321000,2.9212000
+addition_to_retained_earnings,,3.7766044,3.9422585,4.6666000
+cash,2.8609000,4.2746000,5.1054000,5.9161000
+accounts_recievables,13.7886000,16.3413000,19.2759000,22.8537000
+inventory,17.9091000,20.4015000,24.6225000,28.9909000
+property_plant_and_equipment,222.1988000,284.0264000,337.5929000,410.8976000
+accumulated_depreciation,66.1424000,70.4103000,75.3080000,81.9142000
+accounts_payables,21.3261000,42.5000000,56.1728000,63.2500000
+short_term_debt,20.6762000,28.8301000,43.4495000,53.2583000
+long_term_debt,26.8000000,30.9100000,35.2400000,48.9300000
+paid_in_capital,60.3000000,87.1000000,107.2000000,147.4000000
+retained_earnings,61.5127000,65.2893044,69.2315629,73.8981629
+shareholders_equity,121.8127000,152.3893044,176.4315629,221.2981629

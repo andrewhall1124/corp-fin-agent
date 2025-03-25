@@ -12,8 +12,8 @@ agent = CodeAgent(tools=[], model=model, add_base_tools=True)
 
 # Read in csv file
 df = pl.read_csv("financial_statements_clean.csv")
-headers = df["value"].to_list()
-df = df.drop("value").transpose(
+headers = df["item"].to_list()
+df = df.drop("item").transpose(
     include_header=True, header_name="year", column_names=headers
 )
 
@@ -45,7 +45,6 @@ sales_growth_rate = prompt_llm(
     prompt="What is 2007 sales growth rate? Forecast it as an average of the previous years.",
     data_column_name="sales_growth_rate",
 )
-print("SALES_GROWTH_RATE", sales_growth_rate)
 
 # Taxes
 tax_rate = prompt_llm(
@@ -141,7 +140,7 @@ print("SHORT_TERM_DEBT", short_term_debt)
 # Calculate the plug
 
 long_term_debt = prompt_llm(
-    prompt=f"Return the Forecast as a single number for Long Term Debt for 2007 using calculations of that years' forecasted total assets minus forecasted total shareholders equity minus forecasted total current liabilities",
+    prompt="Return the Forecast as a single number for Long Term Debt for 2007 using calculations of that years' forecasted total assets minus forecasted total shareholders equity minus forecasted total current liabilities",
     data_column_name=['cash', 'accounts_recievables', 'inventory', 'net_ppe', 'paid_in_capital', 'retained_earnings', 'accounts_payables', 'short_term_debt']
 )
 print("LONG_TERM_DEBT", long_term_debt)
