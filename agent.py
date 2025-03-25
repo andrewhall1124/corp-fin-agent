@@ -138,10 +138,27 @@ short_term_debt = prompt_llm(
 )
 print("SHORT_TERM_DEBT", short_term_debt)
 
+# Calculate the plug
+
+long_term_debt = prompt_llm(
+    prompt=f"Return the Forecast as a single number for Long Term Debt for 2007 using calculations of that years' forecasted total assets minus forecasted total shareholders equity minus forecasted total current liabilities",
+    data_column_name=['cash', 'accounts_recievables', 'inventory', 'net_ppe', 'paid_in_capital', 'retained_earnings', 'accounts_payables', 'short_term_debt']
+)
+print("LONG_TERM_DEBT", long_term_debt)
+
 # Forecast interest expense
+
+interest_expense = prompt_llm(
+    prompt=f"Return the Forecast as a single number for Interest Expense for 2007 using the 2006 values of {short_term_debt}% multiplied by {short_term_interest_rate}% added to {long_term_debt}% multiplied by {long_term_interest_rate}%.",
+    data_column_name=['interest_expense', 'short_term_interest_rate', 'long_term_interest_rate', 'short_term_debt', 'long_term_debt']
+)
+print("INTEREST_EXPENSE", interest_expense)
 
 # Forecast dividends
 
-# Forecast depreciation
+dividends = prompt_llm(
+    prompt=f"Return the Forecast as a single number for Dividends for 2007 using {dividend_payout_rate}% multiplied by the calculated forecast for Net Income)",
+    data_column_name=['dividends', 'dividend_payout_rate', 'net_income']
+)
+print("DIVIDENDS", dividends)
 
-# Calculate the plug
