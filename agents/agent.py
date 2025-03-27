@@ -70,19 +70,19 @@ sales_growth_rate = no_tools_workflow.run(
     task=sales_growth_rate_prompt()
 )
 
-sgr_steps = len(no_tools_workflow.history)
+sgr_steps = len(no_tools_workflow.memory.steps)
 
 sales = no_tools_workflow.run(
     task=sales_prompt(sales_growth_rate)
 )
 
-sales_steps = len(no_tools_workflow.history)
+sales_steps = len(no_tools_workflow.memory.steps)
 
 cost_of_goods_sold = no_tools_workflow.run(
     task=cost_of_goods_sold_prompt(sales)
 )
 
-cogs_steps = len(no_tools_workflow.history)
+cogs_steps = len(no_tools_workflow.memory.steps)
 
 def evaluate(sales_growth_rate: float, sales: float, cost_of_goods_sold: float) -> tuple[float]:
     """Return a list of accuracies."""
@@ -97,18 +97,21 @@ sgr_sse, sales_sse, cogs_sse = evaluate(sales_growth_rate, sales, cost_of_goods_
 
 results = [
     {
+        'trial': 1,
         'agent': 'no_tools_workflow',
         'task': 'sales_growth_rate',
         'steps': sgr_steps,
         'error': sgr_sse,
     },
     {
+        'trial': 1,
         'agent': 'no_tools_workflow',
         'task': 'sales',
         'steps': sales_steps,
         'error': sales_sse,
     },
     {
+        'trial': 1,
         'agent': 'no_tools_workflow',
         'task': 'cost_of_goods_sold',
         'steps': cogs_steps,
@@ -117,4 +120,4 @@ results = [
 ]
 
 print(results)
-print(pl.DataFrame(results))
+print(pl.from_dicts(results))
