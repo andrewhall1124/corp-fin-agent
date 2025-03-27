@@ -35,3 +35,21 @@ def prompt_llm(prompt: str, data_column_name: str) -> float:
     data = get_data(data_column_name)
     result = agent.run(prompt + f"\nData: {data}")
     return clean_output(result)
+
+sales_growth_rate = prompt_llm(
+    prompt="What is 2007 sales growth rate? Forecast it as an average of the previous years.",
+    data_column_name=['sales_growth_rate']
+)
+print("SALES_GROWTH_RATE", sales_growth_rate)
+
+sales = prompt_llm(
+    prompt=f"Forecast sales for 2007 using last years sales and the growth rate: {sales_growth_rate*100}.",
+    data_column_name=['sales', 'sales_growth_rate']
+)
+print("SALES", sales)
+
+cost_of_goods_sold = prompt_llm(
+    prompt=f"Forecast Cost of Goods Sold for 2007 using percent of sales forcasting given that the previous years' sales is: {sales}.",
+    data_column_name=['sales', 'cost_of_goods_sold']
+)
+print("COST_OF_GOODS_SOLD", cost_of_goods_sold)
