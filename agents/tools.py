@@ -4,6 +4,7 @@ import polars as pl
 # Read in csv file
 df = pl.read_csv("financial_statements_clean.csv")
 
+
 @tool
 def get_variable_names() -> list[str]:
     """
@@ -23,7 +24,7 @@ def get_available_years() -> list[int]:
 
 
 @tool
-def historical_average(variable: str) -> float:
+def forecast_as_historical_average(variable: str) -> float:
     """
     This is a tool that returns the historical average of a specified variable.
     It returns the average value of the variable.
@@ -35,8 +36,7 @@ def historical_average(variable: str) -> float:
         df
         # Get mean value for specified column
         .filter(pl.col("item").eq(variable))
-        .unpivot(index="item", variable_name="year")  
-        ["value"]
+        .unpivot(index="item", variable_name="year")["value"]
         .mean()
     )
 
@@ -88,7 +88,7 @@ def forecast_value_with_growth_rate(
 
 
 @tool
-def historical_percent_of_sales(variable: str) -> float:
+def forecast_percent_of_sales(variable: str) -> float:
     """
     This is a tool that returns the historical percent of sales of a specified variable.
     It returns the decimal format ammount of the variable as a percentage of sales.
@@ -107,26 +107,11 @@ def historical_percent_of_sales(variable: str) -> float:
     )
 
 
-@tool
-def forecast_interest_expense(
-    previous_year_short_term_debt: float,
-    previous_year_long_term_debt: float,
-    short_term_interest_rate: float,
-    long_term_interest_rate: float,
-) -> float:
-    """
-    This is a tool that returns the forecasted interest expense using last years long term
-    and short term debt values, and the forecasted short term and long term interest rates.
-    It returns the forecasted interest expense.
-
-    Args:
-        previous_year_short_term_debt: The previous years short term debt.
-        previous_year_long_term_debt: The previous years long term debt.
-        short_term_interest_rate: The forecasted short term interest rate.
-        long_term_interest_rate: The forecasted long term interest rate.
-
-    """
-    return (
-        previous_year_short_term_debt * short_term_interest_rate
-        + previous_year_long_term_debt * long_term_interest_rate
-    )
+tool_box = [
+    get_variable_names,
+    get_available_years,
+    get_variable_by_year,
+    forecast_as_historical_average,
+    forecast_value_with_growth_rate,
+    forecast_percent_of_sales,
+]

@@ -9,6 +9,7 @@ df = df.drop("item").transpose(
     include_header=True, header_name="year", column_names=headers
 )
 
+
 def get_data(value_names: list[str]) -> str:
     if not isinstance(value_names, list):
         value_names = [value_names]
