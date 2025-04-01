@@ -190,7 +190,7 @@ if __name__ == "__main__":
     os.makedirs("results/logs", exist_ok=True)
 
     # Tests
-    # test_workflow(tools=True, n_trials=1)
-    # test_workflow(tools=False, n_trials=1)
+    test_workflow(tools=True, n_trials=1)
+    test_workflow(tools=False, n_trials=1)
     test_agent(tools=True, n_trials=1)
     test_agent(tools=False, n_trials=1)
