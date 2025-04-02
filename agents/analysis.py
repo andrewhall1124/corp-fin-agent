@@ -3,6 +3,7 @@ import json
 import os
 import re
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 os.makedirs("results/charts", exist_ok=True)
 
@@ -73,7 +74,6 @@ agent_task_df = (
         .otherwise(pl.col("predicted_value").round(2))
     )
     .with_columns(
-        pl.col("true_value").sub(pl.col("predicted_value")).pow(2).alias("sse"),
         pl.col("true_value").eq(pl.col("predicted_value")).alias("correct"),
     )
     .join(meta_data_df, on=["trial", "agent"], how="left")
@@ -84,15 +84,13 @@ agent_task_df = (
         pl.col("total_tokens").mean(),
         pl.col("duration").mean(),
         pl.col("steps").mean(),
-        pl.col("sse").mean(),
+        pl.col("error").mean(),
         pl.col("correct").mul(100).alias("accuracy").mean(),
     )
     .with_columns(
-        pl.col("completion_tokens", "prompt_tokens", "total_tokens", "steps").cast(
-            pl.Int32
-        )
+        pl.col("completion_tokens", "prompt_tokens", "total_tokens").cast(pl.Int32)
     )
-    .sort("agent")
+    .sort(["agent", "task"])
 )
 
 print(agent_task_df)
@@ -103,7 +101,7 @@ agent_df = agent_task_df.group_by("agent").agg(
     pl.col("total_tokens").sum(),
     pl.col("duration").sum(),
     pl.col("steps").sum(),
-    pl.col("sse").mean(),
+    pl.col("error").mean(),
     pl.col("accuracy").mean(),
 )
 
@@ -123,6 +121,7 @@ ax.bar(
 )
 
 plt.ylabel("Token Count")
+plt.xlabel("Agent")
 plt.title("Stacked Token Usage by Agent")
 plt.legend()
 
@@ -133,9 +132,10 @@ plt.savefig("results/charts/token_usage.png", dpi=300)
 
 fig, ax = plt.subplots(figsize=(9, 6))
 
-plt.bar(agent_df["agent"], agent_df["duration"])
+sns.barplot(agent_df, x="agent", y="duration")
 
 plt.ylabel("Duration (s)")
+plt.xlabel("Agent")
 plt.title("Time Duration by Agent")
 
 plt.savefig("results/charts/time_duration.png", dpi=300)
@@ -144,31 +144,26 @@ plt.savefig("results/charts/time_duration.png", dpi=300)
 
 fig, ax = plt.subplots(figsize=(9, 6))
 
-plt.bar(agent_df["agent"], agent_df["steps"])
+sns.barplot(agent_task_df, x="agent", y="steps", hue="task")
 
 plt.ylabel("Steps")
-plt.title("Number of Steps by Agent")
+plt.xlabel("Agent")
+plt.title("Agent Steps by Task")
 
 plt.savefig("results/charts/steps.png", dpi=300)
-
-# ---------- Error Plot ----------
-
-fig, ax = plt.subplots(figsize=(9, 6))
-
-plt.bar(agent_df["agent"], agent_df["sse"])
-
-plt.ylabel("Error")
-plt.title("Sum of Squares Error by Agent")
-
-plt.savefig("results/charts/error.png", dpi=300)
 
 # ---------- Accuracy Plot ----------
 
 fig, ax = plt.subplots(figsize=(9, 6))
 
-plt.bar(agent_df["agent"], agent_df["accuracy"])
+sns.barplot(agent_task_df, x="agent", y="accuracy", hue="task")
 
 plt.ylabel("Accuracy (%)")
-plt.title("Accuracy by Agent")
+plt.xlabel("Agent")
+plt.title("Agent Accuracy by Task")
+
+plt.legend(title="Task", bbox_to_anchor=(1, 1), loc="upper left")
+
+plt.tight_layout()
 
 plt.savefig("results/charts/accuracy.png", dpi=300)
