@@ -1,0 +1,4 @@
+trial,agent,task,predicted_value,steps,error
+63304,tools_agent,sales_growth_rate,0.22021828859137366,1.3333333333333333,0.0
+63304,tools_agent,sales,113.50812181597765,1.3333333333333333,0.0
+63304,tools_agent,cost_of_goods_sold,72.80174046109632,1.3333333333333333,0.0

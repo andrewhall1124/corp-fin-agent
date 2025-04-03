@@ -1,0 +1,4 @@
+trial,agent,task,predicted_value,steps,error
+46426,no_tools_workflow,sales_growth_rate,0.2202183,5,0.0
+46426,no_tools_workflow,sales,113.50812287724,2,0.0
+46426,no_tools_workflow,cost_of_goods_sold,72.80174114176782,5,0.0
