@@ -8,6 +8,7 @@ dependencies = [
     "accelerate>=1.5.2",
     "black>=24.10.0",
     "isort>=6.0.0",
+    "matplotlib>=3.10.1",
     "numpy>=2.2.2",
     "pandas>=2.2.3",
     "polars>=1.25.2",
